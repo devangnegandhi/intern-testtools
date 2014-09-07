@@ -1,0 +1,19 @@
+{
+  "name": "intern-testtools",
+  "version": "0.0.1",
+  "description": "Customized intern.io configurtions, reporters and objects for reuse across projects",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/devangnegandhi/intern-testtools.git"
+  },
+  "author": "Devang Negandhi (devangnegandhi@gmail.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/devangnegandhi/intern-testtools/issues"
+  },
+  "homepage": "https://github.com/devangnegandhi/intern-testtools"
+}
