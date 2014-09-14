@@ -39,11 +39,15 @@ var diagnostics = {
 		dir = dir || this.createTempDir();
 
 		var prettyPrintLogs = '';
-		for (var i = 0; i < logs.length; i++) {
-			prettyPrintLogs += '[' + logs[i].level + '] ' + logs[i].message.replace(/(\r\n|\n|\r)/gm, '') + '\n'; 
+
+		if(logs) {
+			for (var i = 0; i < logs.length; i++) {
+				prettyPrintLogs += '[' + logs[i].level + '] ' + logs[i].message.replace(/(\r\n|\n|\r)/gm, '') + '\n'; 
+			}
 		}
 
 		var logsFilePath = path.join(dir, name);
+
 		fs.writeFileSync(logsFilePath, prettyPrintLogs, 'utf-8');
 
 		return logsFilePath;
@@ -70,6 +74,25 @@ var diagnostics = {
 	},
 
 	/**
+	 * Method to save a browser log onto the disk
+	 * @this diagnostics
+	 * @param  {String} logs A text string containing logs
+	 * @param  {String} dir  Directory where to store it in. (Default: 'OS temp directory')		
+	 * @param  {String} name Name of the text files. (Default: 'error_logs_<random_number>.png')
+	 * @return {String} The complete path of the error logs file
+	 */
+	writeTextLogs: function (logs, dir, name) {
+		name = name || this.generateRandomNumber() + '_logs' + '.txt';
+		dir = dir || this.createTempDir();
+
+		var logsFilePath = path.join(dir, name);
+
+		fs.writeFileSync(logsFilePath, logs, 'utf-8');
+
+		return logsFilePath;
+	},
+
+	/**
 	 * Method to generate a random number.
 	 * @this diagnostics
 	 * @return {Number} A number between 0 and 10000000
@@ -89,7 +112,9 @@ var diagnostics = {
 		var osTempDir = os.tmpdir();
 		var tempDir = path.join(osTempDir, 'intern', 'diagnostics', randomNumber);
 
-		tempDir = mkdirp.sync(tempDir);
+		if(!fs.existsSync(tempDir)) {
+			mkdirp.sync(tempDir);
+		}
 
 		return tempDir;
 	}

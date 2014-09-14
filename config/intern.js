@@ -6,22 +6,23 @@ var tunnelType = 'NullTunnel';
 var sauceLabsUsername = null;
 var sauceLabsAccessKey = null;
 var port = null;
+var proxyPort = 9000;
+var hostname = 'localhost';
 
 if(typeof process !== "undefined") {
-	// console.log(process.env);
-	if (process.env.SAUCELAB_TUNNEL === '1') {
+	// If Sauce Labs ccredentials are provided, use that
+	if (process.env.SAUCE_USERNAME && process.env.SAUCE_ACCESS_KEY) {
 		tunnelType = 'SauceLabsTunnel';
-		
-		if (!process.env.SAUCE_USERNAME || !process.env.SAUCE_ACCESS_KEY) {
-			console.error('No SauceLabs username and/or access-key specified.');
-		} else {
-			sauceLabsUsername = process.env.SAUCE_USERNAME;
-			sauceLabsAccessKey = process.env.SAUCE_ACCESS_KEY;
-		}
-	}
+		sauceLabsUsername = process.env.SAUCE_USERNAME;
+		sauceLabsAccessKey = process.env.SAUCE_ACCESS_KEY;
 
-	if (process.env.SELENIUM_LAUNCHER_PORT) {
+	// Else if Selenium webdriver port is provided, use that
+	} else if (process.env.SELENIUM_LAUNCHER_PORT) {
 		port = process.env.SELENIUM_LAUNCHER_PORT;
+
+	// Else error out
+	} else {
+		console.error('No SauceLabs credentials or Selenium Webdriver port provided.');
 	}
 }
 
@@ -30,10 +31,10 @@ if(typeof process !== "undefined") {
 // packages, suites, excludeInstrumentation, and (if you want functional tests) functionalSuites.
 define({
 	// The port on which the instrumenting proxy will listen
-	proxyPort: 9000,
+	proxyPort: proxyPort,
 
 	// A fully qualified URL to the Intern proxy
-	proxyUrl: 'http://localhost:9000/',
+	proxyUrl: 'http://' + hostname + ':' + proxyPort + '/',
 
 	// Default desired capabilities for all environments. Individual capabilities can be overridden by any of the
 	// specified browser environments in the `environments` array below as well. See
