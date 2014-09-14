@@ -8,11 +8,10 @@ define([
 	'dojo/node!istanbul/index'
 ], function (ReportDir, Collector, Reporter) {
 	var collector = new Collector();
-	var reporter = new Reporter();
+	var reporter = new Reporter({ dir: ReportDir.dir });
 
 	return {
 		'/coverage': function (sessionId, coverage) {
-			//console.log('-----------------' + JSON.stringify(coverage, undefined, 2));
 			collector.add(coverage);
 		},
 

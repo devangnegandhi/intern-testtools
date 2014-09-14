@@ -4,7 +4,8 @@
   "description": "Customized intern.io configurtions, reporters and objects for reuse across projects",
   "main": "",
   "scripts": {
-    "test": "bash ./tests/run_test.sh"
+    "test": "bash ./tests/run_test.sh",
+    "coveralls": "cat lcov.info | node_modules/.bin/coveralls"
   },
   "repository": {
     "type": "git",
@@ -17,6 +18,7 @@
   },
   "homepage": "https://github.com/devangnegandhi/intern-testtools",
   "devDependencies": {
+    "coveralls": "^2.11.1",
     "intern": "^2.0.3",
     "mkdirp": "^0.5.0",
     "requirejs": "^2.1.15",
