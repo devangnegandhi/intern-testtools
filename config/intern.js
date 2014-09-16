@@ -22,7 +22,7 @@ if(typeof process !== "undefined") {
 
 	// Else error out
 	} else {
-		console.error('No SauceLabs credentials or Selenium Webdriver port provided.');
+		console.warn('No SauceLabs credentials or Selenium Webdriver port provided.');
 	}
 }
 

@@ -7,26 +7,26 @@ define([
 	'dojo/Deferred'
 ], function (registerSuite, assert, Deferred) {
 
-	var loggedStr,
-		oldConsoleError;
+	var oldConsoleError;
 
 	registerSuite({
 		name: 'config/intern',
 
 		setup: function () {
-			loggedStr = '';
-			oldConsoleError = console.error;
-			console.error = function (str) {
-				loggedStr += str;
-			}
 		},
 
 		teardown: function () {
-			console.error = oldConsoleWarn;
 		},
 
 		'checkDefaultProperties': function () {
 			var dfd = new Deferred;
+
+			var loggedStr = '';
+			var oldConsoleError = console.warn;
+			console.warn = function (str) {
+				loggedStr += str;
+			}
+
 			require(['config/intern'], function(config) {
 				var expectedProperties = [
 					'proxyPort',
@@ -106,6 +106,10 @@ define([
 				);
 
 				require.undef('config/intern');
+
+				loggedStr = '';
+				console.warn = oldConsoleError;
+
 				dfd.resolve();
 			});
 
@@ -144,6 +148,13 @@ define([
 
 		'setPartialSaucelabsSetting': function () {
 			var dfd = new Deferred;
+
+			var loggedStr = '';
+			var oldConsoleError = console.warn;
+			console.warn = function (str) {
+				loggedStr += str;
+			}
+
 			process.env.SAUCE_USERNAME = 'someuser';
 			require(['config/intern'], function(config) {
 
@@ -202,6 +213,10 @@ define([
 				);
 
 				require.undef('config/intern');
+
+				loggedStr = '';
+				console.warn = oldConsoleError;
+				
 				delete process.env.SAUCE_USERNAME;
 				delete process.env.SAUCE_ACCESS_KEY;
 				dfd.resolve();
