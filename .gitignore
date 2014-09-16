@@ -1,3 +1,4 @@
-node_modules/
 html-report/
+node_modules/
 lcov.info
+coverage-final.json
