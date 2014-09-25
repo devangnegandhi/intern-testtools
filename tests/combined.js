@@ -154,7 +154,6 @@ define([
 			});
 
 			logger.dumpLogs();
-
 			//diagnostics.writeTextLogs(chalk.stripColor(getLogs()), logDir, logFile, true);
 		}
 	};

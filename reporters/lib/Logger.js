@@ -1,3 +1,4 @@
+var fs = require('fs');
 var chalk = require('chalk');
 var path = require('path');
 var diagnostics = require('./diagnostics');
@@ -6,11 +7,17 @@ var Logger = function (envType, outDir, opts) {
 	var logStr;
 	var type;
 	var sessionId;
+	var logFile;
 
 	this._outDir = outDir || diagnostics.createTempDir();
-	this._verbose = opts && opts.verbose || true;
+	this._verbose = opts && opts.verbose || false;
 	this._indentStr = opts && opts.indentStr || '    ';
 	this._outFile = 'test_logs.txt';
+
+	logFile = logFile = path.resolve(this._outDir, this._outFile);
+	if (!fs.existsSync(logFile)) {
+		console.log(chalk.blue('Logs can be found at: ' + logFile) + '\n');
+	}
 
 	if (envType === Logger.Env.NODE) {
 		this._log = '';
@@ -379,13 +386,13 @@ Logger.prototype.getIndentation = function (sessionId) {
 Logger.prototype.dumpLogs = function () {
 	var outStr = '';
 	if(typeof this._log === 'string') {
-		diagnostics.writeTextLogs(this._log, this._outDir, this._outFile, true);
+		diagnostics.writeTextLogs(this._log.trim(), this._outDir, this._outFile, true);
 	} else {
 		outStr += this._log['init'];
 		delete this._log['init'];
 
-		outStr += this._log['tunnel'];
-		delete this._log['tunnel'];
+		outStr += this._log['tunnelLogs'];
+		delete this._log['tunnelLogs'];
 
 		for (var sessionId in this._log) {
 		    if (this._log.hasOwnProperty(sessionId)) {
@@ -396,11 +403,13 @@ Logger.prototype.dumpLogs = function () {
 		    }
 		}
 
-		outStr += this._log['fatalErrors'];
-		delete this._log['fatalErrors'];
+		if (this._log['fatalErrors']) {
+			outStr += this._log['fatalErrors'];
+			delete this._log['fatalErrors'];
+		}
 
 		//Write the init logs
-		diagnostics.writeTextLogs(outStr, this._outDir, this._outFile, true);
+		diagnostics.writeTextLogs(outStr.trim(), this._outDir, this._outFile, true);
 	}
 }
 
