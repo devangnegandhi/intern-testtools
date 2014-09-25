@@ -13,52 +13,38 @@ define([
 	'dojo/node!../../../../reporters/lib/Logger',
 	'dojo/node!istanbul/index',
 ], function (intern, util, args, fs, Collector, JsonReporter, LcovHtmlReporter, TextReporter, 
-		LcovReporter, chalk, diagnostics, Logger) {
+		LcovReporter, chalk, Diagnostics, Logger) {
 
-	var collector = new Collector();
-	var reporters = [];
-	var hasGrouping = 'group' in console && 'groupEnd' in console;
-	var tabs = '    ';
-	var color = chalk;
-	var Diagnostics = diagnostics;
-	var sessions = {};
-
-	var logger;
-
-	intern.debug = true;
-
-	var logFile = 'myLogFile.txt';
-	var logDir = './logs/';
-	var logs;
-
-	if (process.env.TRAVIS_JOB_NUMBER) {
-		logDir += 'build_' + process.env.TRAVIS_JOB_NUMBER;
-	} else {
-		logDir += args.runId;
-	}
-
-	if (intern.mode === 'client') {
-		reporters = [ new JsonReporter() ];
-		logs = '';
-	}
-	else {
-		reporters = [ new TextReporter(), new LcovHtmlReporter(), new LcovReporter() ];
-		logs = {};
-	}
+	var collector,
+		reporters,
+		sessions,
+		logDir,
+		logger,
+		type;
 
 	return {
 		start: function () {
-			var type;
-			var obj = null;
-			if (intern.mode === 'client') {
-				type = 'Node.js';
+			sessions = {};
+			reporters = [];
+			collector = new Collector();
+			logDir = './logs/';
 
-				logger = new Logger(Logger.Env.NODE, logDir);
+			if (process.env.TRAVIS_JOB_NUMBER) {
+				logDir += 'build_' + process.env.TRAVIS_JOB_NUMBER;
 			} else {
-				type = 'Browser';
-				obj = {sessionId: 'start'}
+				logDir += args.runId;
+			}
 
-				logger = new Logger(Logger.Env.BROWSER, logDir);
+			if (intern.mode === 'client') {
+				type = Logger.Env.NODE;
+
+				logger = new Logger(type, logDir);
+				reporters = [ new JsonReporter() ];
+			} else {
+				type = Logger.Env.BROWSER;
+
+				logger = new Logger(type, logDir);
+				reporters = [ new TextReporter(), new LcovHtmlReporter(), new LcovReporter() ];
 			}	
 		},
 
@@ -154,7 +140,6 @@ define([
 			});
 
 			logger.dumpLogs();
-			//diagnostics.writeTextLogs(chalk.stripColor(getLogs()), logDir, logFile, true);
 		}
 	};
 });
