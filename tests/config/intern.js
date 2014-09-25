@@ -3,9 +3,8 @@
  */
 define([
 	'intern!object',
-	'intern/chai!assert',
-	'dojo/Deferred'
-], function (registerSuite, assert, Deferred) {
+	'intern/chai!assert'
+], function (registerSuite, assert) {
 
 	var oldConsoleError;
 
@@ -19,7 +18,7 @@ define([
 		},
 
 		'checkDefaultProperties': function () {
-			var dfd = new Deferred;
+			var dfd = this.async();
 
 			var loggedStr = '';
 			var oldConsoleError = console.warn;
@@ -27,7 +26,7 @@ define([
 				loggedStr += str;
 			}
 
-			require(['config/intern'], function(config) {
+			require(['config/intern'], dfd.callback(function(config) {
 				var expectedProperties = [
 					'proxyPort',
 					'proxyUrl',
@@ -109,17 +108,13 @@ define([
 
 				loggedStr = '';
 				console.warn = oldConsoleError;
-
-				dfd.resolve();
-			});
-
-			return dfd;
+			}));
 		},
 
 		'setPort': function () {
-			var dfd = new Deferred;
+			var dfd = this.async();
 			process.env.SELENIUM_LAUNCHER_PORT = 1234;
-			require(['config/intern'], function(config) {
+			require(['config/intern'], dfd.callback(function(config) {
 
 				assert.deepEqual(
 					config.tunnelOptions, 
@@ -140,14 +135,11 @@ define([
 
 				require.undef('config/intern');
 				delete process.env.SELENIUM_LAUNCHER_PORT;
-				dfd.resolve();
-			});
-
-			return dfd;
+			}));
 		},
 
 		'setPartialSaucelabsSetting': function () {
-			var dfd = new Deferred;
+			var dfd = this.async();
 
 			var loggedStr = '';
 			var oldConsoleError = console.warn;
@@ -156,7 +148,7 @@ define([
 			}
 
 			process.env.SAUCE_USERNAME = 'someuser';
-			require(['config/intern'], function(config) {
+			require(['config/intern'], dfd.callback(function(config) {
 
 				assert.equal(
 					loggedStr,
@@ -183,17 +175,15 @@ define([
 
 				require.undef('config/intern');
 				delete process.env.SAUCE_USERNAME;
-				dfd.resolve();
-			});
-
-			return dfd;
+			}));
 		},
 
 		'setSaucelabsSetting': function () {
-			var dfd = new Deferred;
+			var dfd = this.async();
+
 			process.env.SAUCE_USERNAME = 'someuser';
 			process.env.SAUCE_ACCESS_KEY = 'someAccessKey';
-			require(['config/intern'], function(config) {
+			require(['config/intern'], dfd.callback(function(config) {
 
 				assert.deepEqual(
 					config.tunnelOptions, 
@@ -216,13 +206,10 @@ define([
 
 				loggedStr = '';
 				console.warn = oldConsoleError;
-				
+
 				delete process.env.SAUCE_USERNAME;
 				delete process.env.SAUCE_ACCESS_KEY;
-				dfd.resolve();
-			});
-
-			return dfd;
+			}));
 		},
 
 		// 'setProcessUndefined': function () {

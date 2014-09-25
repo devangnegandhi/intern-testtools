@@ -68,7 +68,8 @@ define([
 					logData, 
 					'utf-8'
 				), 
-				'Diagnostics.writeTextLogs failed to write correct data or to the correct file');
+				'Diagnostics.writeTextLogs failed to write correct data or to the correct file'
+			);
 		},
 
 		'writeTextLogs#withoutDirectory': function () {

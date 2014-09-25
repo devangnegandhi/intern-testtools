@@ -76,18 +76,33 @@ var diagnostics = {
 	/**
 	 * Method to save a browser log onto the disk
 	 * @this diagnostics
-	 * @param  {String} logs A text string containing logs
-	 * @param  {String} dir  Directory where to store it in. (Default: 'OS temp directory')		
-	 * @param  {String} name Name of the text files. (Default: 'error_logs_<random_number>.png')
-	 * @return {String} The complete path of the error logs file
+	 * @param  {String}		logs 	A text string containing logs
+	 * @param  {String}		dir  	Directory where to store it in. (Default: 'OS temp directory')		
+	 * @param  {String}		name 	Name of the text files. (Default: 'error_logs_<random_number>.png')
+	 * @param  {Boolean}	append 	Should the content be appended
+	 * @return {String}		The 	complete path of the error logs file
 	 */
-	writeTextLogs: function (logs, dir, name) {
+	writeTextLogs: function (logs, dir, name, append) {
 		name = name || this.generateRandomNumber() + '_logs' + '.txt';
 		dir = dir || this.createTempDir();
 
 		var logsFilePath = path.join(dir, name);
+		var opts ={
+			encoding: 'utf-8'
+		};
 
-		fs.writeFileSync(logsFilePath, logs, 'utf-8');
+		if(!fs.existsSync(dir)) {
+			mkdirp.sync(dir);
+		}
+
+		if (append) {
+			opts.flag = 'a';
+			logs = '\n' + logs;
+		} else {
+			opts.flag = 'w';
+		}
+
+		fs.writeFileSync(logsFilePath, logs, opts);
 
 		return logsFilePath;
 	},

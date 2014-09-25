@@ -7,5 +7,6 @@ rm -rf html-report lcov.info
 PATH=./node_modules/.bin/:$PATH
 start-selenium -port 4567 &> /dev/null &
 my_child_PID=$!
-intern-client config=tests/intern-selftest-client
-intern-runner config=tests/intern-selftest-runner
+rand=$RANDOM
+intern-client config=tests/intern-selftest-client runId=$rand
+intern-runner config=tests/intern-selftest-runner runId=$rand

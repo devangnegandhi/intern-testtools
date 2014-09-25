@@ -55,6 +55,7 @@ define({
 		// 'lcovhtml',
 		// 'lcov',
 		//'reporters/lcovhtml_custom'
+		// 'reporters/summary'
 	],
 
 	// Non-functional test suite(s) to run in each browser
