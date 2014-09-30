@@ -6,9 +6,9 @@ define([
 	'intern/chai!assert',
 	'dojo/Deferred',
 	'dojo/node!sinon',
-	'dojo/node!../../reporters/lib/diagnostics',
+	'dojo/node!../../reporters/lib/FileWriter',
 	'reporters/summary'
-], function (registerSuite, assert, Deferred, sinon, Diagnostics, summary) {
+], function (registerSuite, assert, Deferred, sinon, FileWriter, summary) {
 	var originalConsoleGroup = console.group;	
 	var originalConsoleGroupEnd = console.groupEnd;	
 	var loggedStr, oldConsoleLog;
@@ -91,11 +91,11 @@ define([
 
 		setup: function () {
 			sandbox = sinon.sandbox.create();
-			//Mocking Diagnostics module
-			sandbox.stub(Diagnostics);
+			//Mocking FileWriter module
+			sandbox.stub(FileWriter);
 
 			// Always returning 999 for random number generator
-			Diagnostics.generateRandomNumber.returns(randomNumber);
+			FileWriter.generateRandomNumber.returns(randomNumber);
 		},
 
 		beforeEach: function() {
@@ -110,7 +110,7 @@ define([
 				loggedStr += str;
 			};
 
-			Diagnostics.createTempDir.returns(mockTempDir + mockSuite.sessionId);
+			FileWriter.createTempDir.returns(mockTempDir + mockSuite.sessionId);
 		},
 
 		afterEach: function() {
@@ -352,8 +352,8 @@ define([
 				var errorLogsFileName = randomNumber + '_error_logs.txt';
 				var textLogsFileName = randomNumber + '_intern_logs.txt';
 				
-				var loggedData = 'TEST FAIL: (1000ms)\n   Error: mocked error: mocking out the error\n      ParentSuiteName: grandparent\n      SuiteName: parent\n      TestName: child\n      Platform: mockEnv\n      ErrorID: ' + randomNumber + '\n      URL: someURL\n      Diagnostics: ' + mockTempDir + mockTest.sessionId + '\n      Stacktrace:\n      ===========\n      one-on-top-of-the-other\n \n';
-				var loggedColorData = '"\\u001b[31m\\u001b[3mTEST FAIL: (1000ms)\\u001b[23m\\u001b[39m   \\u001b[1m\\u001b[31mError: \\u001b[39m\\u001b[22mmocked error: mocking out the error      \\u001b[36mParentSuiteName:\\u001b[39m grandparent      \\u001b[36mSuiteName:\\u001b[39m parent      \\u001b[36mTestName:\\u001b[39m child      \\u001b[36mPlatform:\\u001b[39m mockEnv      \\u001b[36mErrorID:\\u001b[39m ' + randomNumber +'      \\u001b[36mURL:\\u001b[39m someURL      \\u001b[36mDiagnostics:\\u001b[39m ' + mockTempDir + mockTest.sessionId + '      \\u001b[36mStacktrace:\\u001b[39m      \\u001b[36m===========\\u001b[39m      \\u001b[31mone-on-top-of-the-other\\u001b[39m "';					
+				var loggedData = 'TEST FAIL: (1000ms)\n   Error: mocked error: mocking out the error\n      ParentSuiteName: grandparent\n      SuiteName: parent\n      TestName: child\n      Platform: mockEnv\n      ErrorID: ' + randomNumber + '\n      URL: someURL\n      FileWriter: ' + mockTempDir + mockTest.sessionId + '\n      Stacktrace:\n      ===========\n      one-on-top-of-the-other\n \n';
+				var loggedColorData = '"\\u001b[31m\\u001b[3mTEST FAIL: (1000ms)\\u001b[23m\\u001b[39m   \\u001b[1m\\u001b[31mError: \\u001b[39m\\u001b[22mmocked error: mocking out the error      \\u001b[36mParentSuiteName:\\u001b[39m grandparent      \\u001b[36mSuiteName:\\u001b[39m parent      \\u001b[36mTestName:\\u001b[39m child      \\u001b[36mPlatform:\\u001b[39m mockEnv      \\u001b[36mErrorID:\\u001b[39m ' + randomNumber +'      \\u001b[36mURL:\\u001b[39m someURL      \\u001b[36mFileWriter:\\u001b[39m ' + mockTempDir + mockTest.sessionId + '      \\u001b[36mStacktrace:\\u001b[39m      \\u001b[36m===========\\u001b[39m      \\u001b[31mone-on-top-of-the-other\\u001b[39m "';					
 
 				// The expected string was pre-calculated by taking JSON.stringify(loggedStr) 
 				// output manually beforehand and then making sure it is equal to that
@@ -361,11 +361,11 @@ define([
 					'The summary output was not as expected'
 				);
 
-				assert.ok(Diagnostics.writeErrorLogs.calledWith(mockTest.error, mockTempDir + mockTest.sessionId, errorLogsFileName), 
-					'Diagnostics.writeErrorLogs not called or called with wrong arguments');
+				assert.ok(FileWriter.writeErrorLogs.calledWith(mockTest.error, mockTempDir + mockTest.sessionId, errorLogsFileName), 
+					'FileWriter.writeErrorLogs not called or called with wrong arguments');
 
-				assert.ok(Diagnostics.writeTextLogs.calledWith(loggedData, mockTempDir + mockTest.sessionId, textLogsFileName), 
-					'Diagnostics.writeTextLogs not called or called with wrong arguments');
+				assert.ok(FileWriter.writeTextLogs.calledWith(loggedData, mockTempDir + mockTest.sessionId, textLogsFileName), 
+					'FileWriter.writeTextLogs not called or called with wrong arguments');
 
 			} finally {
 				console.log = oldConsoleLog;
@@ -391,8 +391,8 @@ define([
 				getAvailableLogTypesDfd.resolve(mockLogTypes);
 				getLogsForDfd.resolve(mockBrowserLogs);
 
-				assert.ok(Diagnostics.writeBrowserLogs.calledWith(mockBrowserLogs, mockTempDir + mockTest.sessionId, logType1Filename), 
-					'Diagnostics.writeBrowserLogs not called or called with wrong arguemtns');
+				assert.ok(FileWriter.writeBrowserLogs.calledWith(mockBrowserLogs, mockTempDir + mockTest.sessionId, logType1Filename), 
+					'FileWriter.writeBrowserLogs not called or called with wrong arguemtns');
 
 				getLogsForErrorDfd.reject(mockBrowserLogs);
 
@@ -424,8 +424,8 @@ define([
 									mockRemote.environmentType.browserName + 
 									'_html_snapshot.html';
 
-				assert.ok(Diagnostics.writeTextLogs.calledWith(someHtmlSnapshot, mockTempDir + mockTest.sessionId, fileName), 
-					'Diagnostics.writeTextLogs not called or called with wrong arguments');
+				assert.ok(FileWriter.writeTextLogs.calledWith(someHtmlSnapshot, mockTempDir + mockTest.sessionId, fileName), 
+					'FileWriter.writeTextLogs not called or called with wrong arguments');
 
 			} finally {
 				console.log = oldConsoleLog;
@@ -451,8 +451,8 @@ define([
 									mockRemote.environmentType.browserName + 
 									'_screenshot.png';
 
-				assert.ok(Diagnostics.writeScreenshot.calledWith(someImageData, mockTempDir + mockTest.sessionId, imageFileName), 
-					'Diagnostics.writeScreenshot not called or called with wrong arguments');
+				assert.ok(FileWriter.writeScreenshot.calledWith(someImageData, mockTempDir + mockTest.sessionId, imageFileName), 
+					'FileWriter.writeScreenshot not called or called with wrong arguments');
 
 			} finally {
 				console.log = oldConsoleLog;
@@ -501,7 +501,7 @@ define([
 				loggedStr = '';
 				getCurrentUrlDfd.resolve('someURL');
 
-				var loggedColorData = '"\\u001b[31m\\u001b[3mTEST FAIL: (1000ms)\\u001b[23m\\u001b[39m   \\u001b[1m\\u001b[31mError: \\u001b[39m\\u001b[22mmocked error: mocking out the error      \\u001b[36mParentSuiteName:\\u001b[39m one      \\u001b[36mSuiteName:\\u001b[39m two      \\u001b[36mTestName:\\u001b[39m child      \\u001b[36mPlatform:\\u001b[39m mockEnv      \\u001b[36mErrorID:\\u001b[39m ' + randomNumber +'      \\u001b[36mURL:\\u001b[39m someURL      \\u001b[36mDiagnostics:\\u001b[39m ' + mockTempDir + mockTest.sessionId + '      \\u001b[36mStacktrace:\\u001b[39m      \\u001b[36m===========\\u001b[39m      \\u001b[31mone-on-top-of-the-other\\u001b[39m "';					
+				var loggedColorData = '"\\u001b[31m\\u001b[3mTEST FAIL: (1000ms)\\u001b[23m\\u001b[39m   \\u001b[1m\\u001b[31mError: \\u001b[39m\\u001b[22mmocked error: mocking out the error      \\u001b[36mParentSuiteName:\\u001b[39m one      \\u001b[36mSuiteName:\\u001b[39m two      \\u001b[36mTestName:\\u001b[39m child      \\u001b[36mPlatform:\\u001b[39m mockEnv      \\u001b[36mErrorID:\\u001b[39m ' + randomNumber +'      \\u001b[36mURL:\\u001b[39m someURL      \\u001b[36mFileWriter:\\u001b[39m ' + mockTempDir + mockTest.sessionId + '      \\u001b[36mStacktrace:\\u001b[39m      \\u001b[36m===========\\u001b[39m      \\u001b[31mone-on-top-of-the-other\\u001b[39m "';					
 
 				// The expected string was pre-calculated by taking JSON.stringify(loggedStr) 
 				// output manually beforehand and then making sure it is equal to that
@@ -532,7 +532,7 @@ define([
 				loggedStr = '';
 				getCurrentUrlDfd.resolve('someURL');
 
-				var loggedColorData = '"\\u001b[31m\\u001b[3mTEST FAIL: (1000ms)\\u001b[23m\\u001b[39m   \\u001b[1m\\u001b[31mError: \\u001b[39m\\u001b[22mmocked error: mocking out the error      \\u001b[36mParentSuiteName:\\u001b[39m grandparent      \\u001b[36mSuiteName:\\u001b[39m parent      \\u001b[36mTestName:\\u001b[39m child      \\u001b[36mPlatform:\\u001b[39m mockEnv      \\u001b[36mErrorID:\\u001b[39m ' + randomNumber +'      \\u001b[36mURL:\\u001b[39m someURL      \\u001b[36mDiagnostics:\\u001b[39m ' + mockTempDir + mockSuite.sessionId + '      \\u001b[36mStacktrace:\\u001b[39m      \\u001b[36m===========\\u001b[39m      \\u001b[31mNo Stacktrace\\u001b[39m "';
+				var loggedColorData = '"\\u001b[31m\\u001b[3mTEST FAIL: (1000ms)\\u001b[23m\\u001b[39m   \\u001b[1m\\u001b[31mError: \\u001b[39m\\u001b[22mmocked error: mocking out the error      \\u001b[36mParentSuiteName:\\u001b[39m grandparent      \\u001b[36mSuiteName:\\u001b[39m parent      \\u001b[36mTestName:\\u001b[39m child      \\u001b[36mPlatform:\\u001b[39m mockEnv      \\u001b[36mErrorID:\\u001b[39m ' + randomNumber +'      \\u001b[36mURL:\\u001b[39m someURL      \\u001b[36mFileWriter:\\u001b[39m ' + mockTempDir + mockSuite.sessionId + '      \\u001b[36mStacktrace:\\u001b[39m      \\u001b[36m===========\\u001b[39m      \\u001b[31mNo Stacktrace\\u001b[39m "';
 
 				// The expected string was pre-calculated by taking JSON.stringify(loggedStr) 
 				// output manually beforehand and then making sure it is equal to that
@@ -589,8 +589,8 @@ define([
 				var errorLogsFileName = randomNumber + '_error_logs.txt';
 				var textLogsFileName = randomNumber + '_intern_logs.txt';
 				
-				var loggedData = 'SUITE FAIL: (1000ms)\n   Error: mocked error: mocking out the error\n      ParentSuiteName: grandparent\n      SuiteName: parent\n      TestName: child\n      Platform: mockEnv\n      ErrorID: ' + randomNumber + '\n      URL: someURL\n      Diagnostics: ' + mockTempDir + mockSuite.sessionId + '\n      Stacktrace:\n      ===========\n      one-on-top-of-the-other\n \n';
-				var loggedColorData = '"\\u001b[31m\\u001b[3mSUITE FAIL: (1000ms)\\u001b[23m\\u001b[39m   \\u001b[1m\\u001b[31mError: \\u001b[39m\\u001b[22mmocked error: mocking out the error      \\u001b[36mParentSuiteName:\\u001b[39m grandparent      \\u001b[36mSuiteName:\\u001b[39m parent      \\u001b[36mTestName:\\u001b[39m child      \\u001b[36mPlatform:\\u001b[39m mockEnv      \\u001b[36mErrorID:\\u001b[39m ' + randomNumber +'      \\u001b[36mURL:\\u001b[39m someURL      \\u001b[36mDiagnostics:\\u001b[39m ' + mockTempDir + mockSuite.sessionId + '      \\u001b[36mStacktrace:\\u001b[39m      \\u001b[36m===========\\u001b[39m      \\u001b[31mone-on-top-of-the-other\\u001b[39m "';					
+				var loggedData = 'SUITE FAIL: (1000ms)\n   Error: mocked error: mocking out the error\n      ParentSuiteName: grandparent\n      SuiteName: parent\n      TestName: child\n      Platform: mockEnv\n      ErrorID: ' + randomNumber + '\n      URL: someURL\n      FileWriter: ' + mockTempDir + mockSuite.sessionId + '\n      Stacktrace:\n      ===========\n      one-on-top-of-the-other\n \n';
+				var loggedColorData = '"\\u001b[31m\\u001b[3mSUITE FAIL: (1000ms)\\u001b[23m\\u001b[39m   \\u001b[1m\\u001b[31mError: \\u001b[39m\\u001b[22mmocked error: mocking out the error      \\u001b[36mParentSuiteName:\\u001b[39m grandparent      \\u001b[36mSuiteName:\\u001b[39m parent      \\u001b[36mTestName:\\u001b[39m child      \\u001b[36mPlatform:\\u001b[39m mockEnv      \\u001b[36mErrorID:\\u001b[39m ' + randomNumber +'      \\u001b[36mURL:\\u001b[39m someURL      \\u001b[36mFileWriter:\\u001b[39m ' + mockTempDir + mockSuite.sessionId + '      \\u001b[36mStacktrace:\\u001b[39m      \\u001b[36m===========\\u001b[39m      \\u001b[31mone-on-top-of-the-other\\u001b[39m "';					
 
 				// The expected string was pre-calculated by taking JSON.stringify(loggedStr) 
 				// output manually beforehand and then making sure it is equal to that
@@ -598,11 +598,11 @@ define([
 					'The summary output was not as expected'
 				);
 
-				assert.ok(Diagnostics.writeErrorLogs.calledWith(mockSuite.error, mockTempDir + mockTest.sessionId, errorLogsFileName), 
-					'Diagnostics.writeErrorLogs not called or called with wrong arguments');
+				assert.ok(FileWriter.writeErrorLogs.calledWith(mockSuite.error, mockTempDir + mockTest.sessionId, errorLogsFileName), 
+					'FileWriter.writeErrorLogs not called or called with wrong arguments');
 
-				assert.ok(Diagnostics.writeTextLogs.calledWith(loggedData, mockTempDir + mockTest.sessionId, textLogsFileName), 
-					'Diagnostics.writeTextLogs not called or called with wrong arguments');
+				assert.ok(FileWriter.writeTextLogs.calledWith(loggedData, mockTempDir + mockTest.sessionId, textLogsFileName), 
+					'FileWriter.writeTextLogs not called or called with wrong arguments');
 
 			} finally {
 				console.log = oldConsoleLog;
@@ -628,8 +628,8 @@ define([
 				getAvailableLogTypesDfd.resolve(mockLogTypes);
 				getLogsForDfd.resolve(mockBrowserLogs);
 
-				assert.ok(Diagnostics.writeBrowserLogs.calledWith(mockBrowserLogs, mockTempDir + mockTest.sessionId, logType1Filename), 
-					'Diagnostics.writeBrowserLogs not called or called with wrong arguemtns');
+				assert.ok(FileWriter.writeBrowserLogs.calledWith(mockBrowserLogs, mockTempDir + mockTest.sessionId, logType1Filename), 
+					'FileWriter.writeBrowserLogs not called or called with wrong arguemtns');
 
 				getLogsForErrorDfd.reject(mockBrowserLogs);
 
@@ -661,8 +661,8 @@ define([
 									mockRemote.environmentType.browserName + 
 									'_html_snapshot.html';
 
-				assert.ok(Diagnostics.writeTextLogs.calledWith(someHtmlSnapshot, mockTempDir + mockTest.sessionId, fileName), 
-					'Diagnostics.writeTextLogs not called or called with wrong arguments');
+				assert.ok(FileWriter.writeTextLogs.calledWith(someHtmlSnapshot, mockTempDir + mockTest.sessionId, fileName), 
+					'FileWriter.writeTextLogs not called or called with wrong arguments');
 
 			} finally {
 				console.log = oldConsoleLog;
@@ -688,8 +688,8 @@ define([
 									mockRemote.environmentType.browserName + 
 									'_screenshot.png';
 
-				assert.ok(Diagnostics.writeScreenshot.calledWith(someImageData, mockTempDir + mockTest.sessionId, imageFileName), 
-					'Diagnostics.writeScreenshot not called or called with wrong arguments');
+				assert.ok(FileWriter.writeScreenshot.calledWith(someImageData, mockTempDir + mockTest.sessionId, imageFileName), 
+					'FileWriter.writeScreenshot not called or called with wrong arguments');
 
 			} finally {
 				console.log = oldConsoleLog;
@@ -738,7 +738,7 @@ define([
 				loggedStr = '';
 				getCurrentUrlDfd.resolve('someURL');
 
-				var loggedColorData = '"\\u001b[31m\\u001b[3mSUITE FAIL: (1000ms)\\u001b[23m\\u001b[39m   \\u001b[1m\\u001b[31mError: \\u001b[39m\\u001b[22mmocked error: mocking out the error      \\u001b[36mParentSuiteName:\\u001b[39m one      \\u001b[36mSuiteName:\\u001b[39m two      \\u001b[36mTestName:\\u001b[39m child      \\u001b[36mPlatform:\\u001b[39m mockEnv      \\u001b[36mErrorID:\\u001b[39m ' + randomNumber +'      \\u001b[36mURL:\\u001b[39m someURL      \\u001b[36mDiagnostics:\\u001b[39m ' + mockTempDir + mockTest.sessionId + '      \\u001b[36mStacktrace:\\u001b[39m      \\u001b[36m===========\\u001b[39m      \\u001b[31mone-on-top-of-the-other\\u001b[39m "';					
+				var loggedColorData = '"\\u001b[31m\\u001b[3mSUITE FAIL: (1000ms)\\u001b[23m\\u001b[39m   \\u001b[1m\\u001b[31mError: \\u001b[39m\\u001b[22mmocked error: mocking out the error      \\u001b[36mParentSuiteName:\\u001b[39m one      \\u001b[36mSuiteName:\\u001b[39m two      \\u001b[36mTestName:\\u001b[39m child      \\u001b[36mPlatform:\\u001b[39m mockEnv      \\u001b[36mErrorID:\\u001b[39m ' + randomNumber +'      \\u001b[36mURL:\\u001b[39m someURL      \\u001b[36mFileWriter:\\u001b[39m ' + mockTempDir + mockTest.sessionId + '      \\u001b[36mStacktrace:\\u001b[39m      \\u001b[36m===========\\u001b[39m      \\u001b[31mone-on-top-of-the-other\\u001b[39m "';					
 
 				// The expected string was pre-calculated by taking JSON.stringify(loggedStr) 
 				// output manually beforehand and then making sure it is equal to that
@@ -769,7 +769,7 @@ define([
 				loggedStr = '';
 				getCurrentUrlDfd.resolve('someURL');
 
-				var loggedColorData = '"\\u001b[31m\\u001b[3mSUITE FAIL: (1000ms)\\u001b[23m\\u001b[39m   \\u001b[1m\\u001b[31mError: \\u001b[39m\\u001b[22mmocked error: mocking out the error      \\u001b[36mParentSuiteName:\\u001b[39m grandparent      \\u001b[36mSuiteName:\\u001b[39m parent      \\u001b[36mTestName:\\u001b[39m child      \\u001b[36mPlatform:\\u001b[39m mockEnv      \\u001b[36mErrorID:\\u001b[39m ' + randomNumber +'      \\u001b[36mURL:\\u001b[39m someURL      \\u001b[36mDiagnostics:\\u001b[39m ' + mockTempDir + mockSuite.sessionId + '      \\u001b[36mStacktrace:\\u001b[39m      \\u001b[36m===========\\u001b[39m      \\u001b[31mNo Stacktrace\\u001b[39m "';
+				var loggedColorData = '"\\u001b[31m\\u001b[3mSUITE FAIL: (1000ms)\\u001b[23m\\u001b[39m   \\u001b[1m\\u001b[31mError: \\u001b[39m\\u001b[22mmocked error: mocking out the error      \\u001b[36mParentSuiteName:\\u001b[39m grandparent      \\u001b[36mSuiteName:\\u001b[39m parent      \\u001b[36mTestName:\\u001b[39m child      \\u001b[36mPlatform:\\u001b[39m mockEnv      \\u001b[36mErrorID:\\u001b[39m ' + randomNumber +'      \\u001b[36mURL:\\u001b[39m someURL      \\u001b[36mFileWriter:\\u001b[39m ' + mockTempDir + mockSuite.sessionId + '      \\u001b[36mStacktrace:\\u001b[39m      \\u001b[36m===========\\u001b[39m      \\u001b[31mNo Stacktrace\\u001b[39m "';
 
 				// The expected string was pre-calculated by taking JSON.stringify(loggedStr) 
 				// output manually beforehand and then making sure it is equal to that

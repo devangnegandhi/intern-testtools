@@ -6,7 +6,7 @@ var os = require('os');
 var path = require('path');
 var mkdirp = require('mkdirp');
 
-var diagnostics = {
+var FileWriter = {
 
 	/**
 	 * Method to save an base64 data onto the disk.
@@ -21,7 +21,7 @@ var diagnostics = {
 		dir = dir || this.createTempDir();
 
 		var imagePath = path.join(dir, name);
-		fs.writeFileSync(imagePath, data, 'base64');
+		fs.writeFileSync(imagePath, data, 'binary');
 
 		return imagePath;
 	},
@@ -139,4 +139,4 @@ var diagnostics = {
  * Object to write diagnostics onto the disk
  * @type {Object}
  */
-module.exports = diagnostics;
+module.exports = FileWriter;

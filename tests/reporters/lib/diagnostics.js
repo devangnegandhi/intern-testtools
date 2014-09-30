@@ -9,8 +9,8 @@ define([
 	'dojo/node!path',
 	'dojo/node!mkdirp',
 	'dojo/node!sinon',
-	'dojo/node!../../../reporters/lib/diagnostics'
-], function (registerSuite, assert, fs, os, path, mkdirp, sinon, Diagnostics) {
+	'dojo/node!../../../reporters/lib/FileWriter'
+], function (registerSuite, assert, fs, os, path, mkdirp, sinon, FileWriter) {
 	var randomNumber,
 		sandbox;
 
@@ -23,8 +23,8 @@ define([
 			sandbox.stub(fs);
 			sandbox.stub(mkdirp, 'sync');
 			// Always returning 999 for random number generator
-			sandbox.spy(Diagnostics, 'generateRandomNumber');
-			sandbox.spy(Diagnostics, 'createTempDir');
+			sandbox.spy(FileWriter, 'generateRandomNumber');
+			sandbox.spy(FileWriter, 'createTempDir');
 			fs.existsSync.returns(true);
 		},
 
@@ -37,7 +37,7 @@ define([
 			var logFileName = 'filename.txt';
 			var logData = 'some text info';
 
-			var ret = Diagnostics.writeTextLogs(logData, logFilePath, logFileName);
+			var ret = FileWriter.writeTextLogs(logData, logFilePath, logFileName);
 
 			assert.ok(
 				fs.writeFileSync.calledWith(
@@ -45,11 +45,11 @@ define([
 					logData, 
 					'utf-8'
 				), 
-				'Diagnostics.writeTextLogs failed to write correct data or to the correct file'
+				'FileWriter.writeTextLogs failed to write correct data or to the correct file'
 			);
 
 			assert.equal(ret, path.join(logFilePath, logFileName),
-				'Return value of Diagnostics.writeTextLogs was wrong'
+				'Return value of FileWriter.writeTextLogs was wrong'
 			);
 		},
 
@@ -58,9 +58,9 @@ define([
 			var logFileName;
 			var logData = 'some text info';
 
-			Diagnostics.writeTextLogs(logData, logFilePath);
+			FileWriter.writeTextLogs(logData, logFilePath);
 
-			logFileName = Diagnostics.generateRandomNumber.lastCall.returnValue + '_logs' + '.txt';
+			logFileName = FileWriter.generateRandomNumber.lastCall.returnValue + '_logs' + '.txt';
 
 			assert.ok(
 				fs.writeFileSync.calledWith(
@@ -68,7 +68,7 @@ define([
 					logData, 
 					'utf-8'
 				), 
-				'Diagnostics.writeTextLogs failed to write correct data or to the correct file'
+				'FileWriter.writeTextLogs failed to write correct data or to the correct file'
 			);
 		},
 
@@ -77,16 +77,16 @@ define([
 			var logFileName = 'filename.txt';
 			var logData = 'some text info';
 
-			Diagnostics.writeTextLogs(logData, undefined, logFileName);
+			FileWriter.writeTextLogs(logData, undefined, logFileName);
 
-			logFilePath = Diagnostics.createTempDir.lastCall.returnValue;
+			logFilePath = FileWriter.createTempDir.lastCall.returnValue;
 
 			assert.ok(
 				fs.writeFileSync.calledWith(
 					path.join(logFilePath, logFileName), 
 					logData, 'utf-8'
 				), 
-				'Diagnostics.writeTextLogs failed to write correct data or to the correct file'
+				'FileWriter.writeTextLogs failed to write correct data or to the correct file'
 			);
 		},
 
@@ -96,13 +96,13 @@ define([
 			var generateRandomNumberCallCount;
 			var logData = 'some text info';
 
-			Diagnostics.writeTextLogs(logData);
+			FileWriter.writeTextLogs(logData);
 
-			logFilePath = Diagnostics.createTempDir.lastCall.returnValue;
+			logFilePath = FileWriter.createTempDir.lastCall.returnValue;
 
 			//Need to get the second last call to generateRandomNumber for getting filename 
-			generateRandomNumberCallCount = Diagnostics.generateRandomNumber.callCount;
-			logFileName = Diagnostics
+			generateRandomNumberCallCount = FileWriter.generateRandomNumber.callCount;
+			logFileName = FileWriter
 							.generateRandomNumber
 							.getCall(generateRandomNumberCallCount-2)
 							.returnValue + '_logs' + '.txt';
@@ -113,7 +113,7 @@ define([
 					logData, 
 					'utf-8'
 				), 
-				'Diagnostics.writeTextLogs failed to write correct data or to the correct file'
+				'FileWriter.writeTextLogs failed to write correct data or to the correct file'
 			);
 		},
 
@@ -122,7 +122,7 @@ define([
 			var logFileName = 'filename.txt';
 			var logData = '';
 
-			Diagnostics.writeTextLogs(logData, logFilePath, logFileName);
+			FileWriter.writeTextLogs(logData, logFilePath, logFileName);
 
 			assert.ok(
 				fs.writeFileSync.calledWith(
@@ -130,7 +130,7 @@ define([
 					logData, 
 					'utf-8'
 				), 
-				'Diagnostics.writeTextLogs failed to write correct data or to the correct file'
+				'FileWriter.writeTextLogs failed to write correct data or to the correct file'
 			);
 		},
 
@@ -139,7 +139,7 @@ define([
 			var logFileName = 'filename.txt';
 			var logData = undefined;
 
-			Diagnostics.writeTextLogs(logData, logFilePath, logFileName);
+			FileWriter.writeTextLogs(logData, logFilePath, logFileName);
 
 			assert.ok(
 				fs.writeFileSync.calledWith(
@@ -147,7 +147,7 @@ define([
 					logData, 
 					'utf-8'
 				), 
-				'Diagnostics.writeTextLogs failed to write correct data or to the correct file'
+				'FileWriter.writeTextLogs failed to write correct data or to the correct file'
 			);
 		},
 
@@ -159,7 +159,7 @@ define([
 				message: 'error message'
 			};
 
-			var ret = Diagnostics.writeErrorLogs(logData, logFilePath, logFileName);
+			var ret = FileWriter.writeErrorLogs(logData, logFilePath, logFileName);
 
 			assert.ok(
 				fs.writeFileSync.calledWith(
@@ -167,11 +167,11 @@ define([
 					JSON.stringify(logData, undefined, 2), 
 					'utf-8'
 				), 
-				'Diagnostics.writeTextLogs failed to write correct data or to the correct file'
+				'FileWriter.writeTextLogs failed to write correct data or to the correct file'
 			);
 
 			assert.equal(ret, path.join(logFilePath, logFileName),
-				'Return value of Diagnostics.writeErrorLogs was wrong'
+				'Return value of FileWriter.writeErrorLogs was wrong'
 			);
 		},
 
@@ -183,9 +183,9 @@ define([
 				message: 'error message'
 			};
 
-			Diagnostics.writeErrorLogs(logData, logFilePath);
+			FileWriter.writeErrorLogs(logData, logFilePath);
 
-			logFileName = Diagnostics
+			logFileName = FileWriter
 							.generateRandomNumber
 							.lastCall.returnValue + '_error_logs' + '.txt';
 
@@ -195,7 +195,7 @@ define([
 					JSON.stringify(logData, undefined, 2),
 					'utf-8'
 				), 
-				'Diagnostics.writeTextLogs failed to write correct data or to the correct file'
+				'FileWriter.writeTextLogs failed to write correct data or to the correct file'
 			);
 		},
 
@@ -207,9 +207,9 @@ define([
 				message: 'error message'
 			};
 
-			Diagnostics.writeErrorLogs(logData, undefined, logFileName);
+			FileWriter.writeErrorLogs(logData, undefined, logFileName);
 
-			logFilePath = Diagnostics.createTempDir.lastCall.returnValue;
+			logFilePath = FileWriter.createTempDir.lastCall.returnValue;
 
 			assert.ok(
 				fs.writeFileSync.calledWith(
@@ -217,7 +217,7 @@ define([
 					JSON.stringify(logData, undefined, 2),
 					'utf-8'
 				), 
-				'Diagnostics.writeTextLogs failed to write correct data or to the correct file'
+				'FileWriter.writeTextLogs failed to write correct data or to the correct file'
 			);
 		},
 
@@ -230,13 +230,13 @@ define([
 				message: 'error message'
 			};
 
-			Diagnostics.writeErrorLogs(logData);
+			FileWriter.writeErrorLogs(logData);
 
-			logFilePath = Diagnostics.createTempDir.lastCall.returnValue;
+			logFilePath = FileWriter.createTempDir.lastCall.returnValue;
 
 			//Need to get the second last call to generateRandomNumber for getting filename 
-			generateRandomNumberCallCount = Diagnostics.generateRandomNumber.callCount;
-			logFileName = Diagnostics
+			generateRandomNumberCallCount = FileWriter.generateRandomNumber.callCount;
+			logFileName = FileWriter
 							.generateRandomNumber
 							.getCall(generateRandomNumberCallCount-2)
 							.returnValue + '_error_logs' + '.txt';
@@ -247,7 +247,7 @@ define([
 					JSON.stringify(logData, undefined, 2),
 					'utf-8'
 				), 
-				'Diagnostics.writeTextLogs failed to write correct data or to the correct file'
+				'FileWriter.writeTextLogs failed to write correct data or to the correct file'
 			);
 		},
 
@@ -256,7 +256,7 @@ define([
 			var logFileName = 'filename.txt';
 			var logData = '';
 
-			Diagnostics.writeErrorLogs(logData, logFilePath, logFileName);
+			FileWriter.writeErrorLogs(logData, logFilePath, logFileName);
 
 			assert.ok(
 				fs.writeFileSync.calledWith(
@@ -264,7 +264,7 @@ define([
 					JSON.stringify(logData, undefined, 2),
 					'utf-8'
 				), 
-				'Diagnostics.writeTextLogs failed to write correct data or to the correct file'
+				'FileWriter.writeTextLogs failed to write correct data or to the correct file'
 			);
 		},
 
@@ -273,7 +273,7 @@ define([
 			var logFileName = 'filename.txt';
 			var logData = undefined;
 
-			Diagnostics.writeErrorLogs(logData, logFilePath, logFileName);
+			FileWriter.writeErrorLogs(logData, logFilePath, logFileName);
 
 			assert.ok(
 				fs.writeFileSync.calledWith(
@@ -281,7 +281,7 @@ define([
 					JSON.stringify(logData, undefined, 2),
 					'utf-8'
 				), 
-				'Diagnostics.writeTextLogs failed to write correct data or to the correct file'
+				'FileWriter.writeTextLogs failed to write correct data or to the correct file'
 			);
 		},
 
@@ -303,7 +303,7 @@ define([
 				}
 			];
 
-			var ret = Diagnostics.writeBrowserLogs(logData, logFilePath, logFileName);
+			var ret = FileWriter.writeBrowserLogs(logData, logFilePath, logFileName);
 
 			assert.ok(
 				fs.writeFileSync.calledWith(
@@ -311,11 +311,11 @@ define([
 					prettyPrintBrowserLogs(logData), 
 					'utf-8'
 				), 
-				'Diagnostics.writeBrowserLogs failed to write correct data or to the correct file'
+				'FileWriter.writeBrowserLogs failed to write correct data or to the correct file'
 			);
 
 			assert.equal(ret, path.join(logFilePath, logFileName),
-				'Return value of Diagnostics.writeBrowserLogs was wrong'
+				'Return value of FileWriter.writeBrowserLogs was wrong'
 			);
 		},
 
@@ -337,9 +337,9 @@ define([
 				}
 			];
 
-			Diagnostics.writeBrowserLogs(logData, logFilePath);
+			FileWriter.writeBrowserLogs(logData, logFilePath);
 
-			logFileName = Diagnostics
+			logFileName = FileWriter
 							.generateRandomNumber
 							.lastCall.returnValue + '_browser_logs' + '.txt';
 
@@ -349,7 +349,7 @@ define([
 					prettyPrintBrowserLogs(logData),
 					'utf-8'
 				), 
-				'Diagnostics.writeBrowserLogs failed to write correct data or to the correct file'
+				'FileWriter.writeBrowserLogs failed to write correct data or to the correct file'
 			);
 		},
 
@@ -371,9 +371,9 @@ define([
 				}
 			];
 
-			Diagnostics.writeBrowserLogs(logData, undefined, logFileName);
+			FileWriter.writeBrowserLogs(logData, undefined, logFileName);
 
-			logFilePath = Diagnostics.createTempDir.lastCall.returnValue;
+			logFilePath = FileWriter.createTempDir.lastCall.returnValue;
 
 			assert.ok(
 				fs.writeFileSync.calledWith(
@@ -381,7 +381,7 @@ define([
 					prettyPrintBrowserLogs(logData),
 					'utf-8'
 				), 
-				'Diagnostics.writeBrowserLogs failed to write correct data or to the correct file'
+				'FileWriter.writeBrowserLogs failed to write correct data or to the correct file'
 			);
 		},
 
@@ -404,13 +404,13 @@ define([
 				}
 			];
 
-			Diagnostics.writeBrowserLogs(logData);
+			FileWriter.writeBrowserLogs(logData);
 
-			logFilePath = Diagnostics.createTempDir.lastCall.returnValue;
+			logFilePath = FileWriter.createTempDir.lastCall.returnValue;
 
 			//Need to get the second last call to generateRandomNumber for getting filename 
-			generateRandomNumberCallCount = Diagnostics.generateRandomNumber.callCount;
-			logFileName = Diagnostics
+			generateRandomNumberCallCount = FileWriter.generateRandomNumber.callCount;
+			logFileName = FileWriter
 							.generateRandomNumber
 							.getCall(generateRandomNumberCallCount-2)
 							.returnValue + '_browser_logs' + '.txt';
@@ -421,7 +421,7 @@ define([
 					prettyPrintBrowserLogs(logData),
 					'utf-8'
 				), 
-				'Diagnostics.writeBrowserLogs failed to write correct data or to the correct file'
+				'FileWriter.writeBrowserLogs failed to write correct data or to the correct file'
 			);
 		},
 
@@ -430,7 +430,7 @@ define([
 			var logFileName = 'filename.txt';
 			var logData = '';
 
-			Diagnostics.writeBrowserLogs(logData, logFilePath, logFileName);
+			FileWriter.writeBrowserLogs(logData, logFilePath, logFileName);
 
 			assert.ok(
 				fs.writeFileSync.calledWith(
@@ -438,7 +438,7 @@ define([
 					prettyPrintBrowserLogs(logData),
 					'utf-8'
 				), 
-				'Diagnostics.writeBrowserLogs failed to write correct data or to the correct file'
+				'FileWriter.writeBrowserLogs failed to write correct data or to the correct file'
 			);
 		},
 
@@ -447,7 +447,7 @@ define([
 			var logFileName = 'filename.txt';
 			var logData = undefined;
 
-			Diagnostics.writeBrowserLogs(logData, logFilePath, logFileName);
+			FileWriter.writeBrowserLogs(logData, logFilePath, logFileName);
 
 			assert.ok(
 				fs.writeFileSync.calledWith(
@@ -455,7 +455,7 @@ define([
 					prettyPrintBrowserLogs(logData),
 					'utf-8'
 				), 
-				'Diagnostics.writeBrowserLogs failed to write correct data or to the correct file'
+				'FileWriter.writeBrowserLogs failed to write correct data or to the correct file'
 			);
 		},
 
@@ -464,7 +464,7 @@ define([
 			var logFileName = 'filename.txt';
 			var logData = 'some data';
 
-			var ret = Diagnostics.writeScreenshot(logData, logFilePath, logFileName);
+			var ret = FileWriter.writeScreenshot(logData, logFilePath, logFileName);
 
 			assert.ok(
 				fs.writeFileSync.calledWith(
@@ -472,11 +472,11 @@ define([
 					logData, 
 					'base64'
 				), 
-				'Diagnostics.writeScreenshot failed to write correct data or to the correct file'
+				'FileWriter.writeScreenshot failed to write correct data or to the correct file'
 			);
 
 			assert.equal(ret, path.join(logFilePath, logFileName),
-				'Return value of Diagnostics.writeScreenshot was wrong'
+				'Return value of FileWriter.writeScreenshot was wrong'
 			);
 		},
 
@@ -485,9 +485,9 @@ define([
 			var logFileName;
 			var logData = 'some data';
 
-			Diagnostics.writeScreenshot(logData, logFilePath);
+			FileWriter.writeScreenshot(logData, logFilePath);
 
-			logFileName = Diagnostics.generateRandomNumber.lastCall.returnValue + 
+			logFileName = FileWriter.generateRandomNumber.lastCall.returnValue + 
 							'_screenshot' + '.png';
 
 			assert.ok(
@@ -496,7 +496,7 @@ define([
 					logData, 
 					'base64'
 				), 
-				'Diagnostics.writeScreenshot failed to write correct data or to the correct file');
+				'FileWriter.writeScreenshot failed to write correct data or to the correct file');
 		},
 
 		'writeScreenshot#withoutDirectory': function () {
@@ -504,9 +504,9 @@ define([
 			var logFileName = 'filename.txt';
 			var logData = 'some data';
 
-			Diagnostics.writeScreenshot(logData, undefined, logFileName);
+			FileWriter.writeScreenshot(logData, undefined, logFileName);
 
-			logFilePath = Diagnostics.createTempDir.lastCall.returnValue;
+			logFilePath = FileWriter.createTempDir.lastCall.returnValue;
 
 			assert.ok(
 				fs.writeFileSync.calledWith(
@@ -514,7 +514,7 @@ define([
 					logData, 
 					'base64'
 				), 
-				'Diagnostics.writeScreenshot failed to write correct data or to the correct file'
+				'FileWriter.writeScreenshot failed to write correct data or to the correct file'
 			);
 		},
 
@@ -524,13 +524,13 @@ define([
 			var generateRandomNumberCallCount;
 			var logData = 'some data';
 
-			Diagnostics.writeScreenshot(logData);
+			FileWriter.writeScreenshot(logData);
 
-			logFilePath = Diagnostics.createTempDir.lastCall.returnValue;
+			logFilePath = FileWriter.createTempDir.lastCall.returnValue;
 
 			//Need to get the second last call to generateRandomNumber for getting filename 
-			generateRandomNumberCallCount = Diagnostics.generateRandomNumber.callCount;
-			logFileName = Diagnostics
+			generateRandomNumberCallCount = FileWriter.generateRandomNumber.callCount;
+			logFileName = FileWriter
 							.generateRandomNumber
 							.getCall(generateRandomNumberCallCount-2)
 							.returnValue + '_screenshot' + '.png';
@@ -541,7 +541,7 @@ define([
 					logData, 
 					'base64'
 				), 
-				'Diagnostics.writeScreenshot failed to write correct data or to the correct file'
+				'FileWriter.writeScreenshot failed to write correct data or to the correct file'
 			);
 		},
 
@@ -550,7 +550,7 @@ define([
 			var logFileName = 'filename.txt';
 			var logData = '';
 
-			Diagnostics.writeScreenshot(logData, logFilePath, logFileName);
+			FileWriter.writeScreenshot(logData, logFilePath, logFileName);
 
 			assert.ok(
 				fs.writeFileSync.calledWith(
@@ -558,7 +558,7 @@ define([
 					logData, 
 					'base64'
 				), 
-				'Diagnostics.writeScreenshot failed to write correct data or to the correct file'
+				'FileWriter.writeScreenshot failed to write correct data or to the correct file'
 			);
 		},
 
@@ -567,7 +567,7 @@ define([
 			var logFileName = 'filename.txt';
 			var logData = undefined;
 
-			Diagnostics.writeScreenshot(logData, logFilePath, logFileName);
+			FileWriter.writeScreenshot(logData, logFilePath, logFileName);
 
 			assert.ok(
 				fs.writeFileSync.calledWith(
@@ -575,7 +575,7 @@ define([
 					logData, 
 					'base64'
 				), 
-				'Diagnostics.writeScreenshot failed to write correct data or to the correct file'
+				'FileWriter.writeScreenshot failed to write correct data or to the correct file'
 			);
 		},
 
@@ -586,7 +586,7 @@ define([
 			var osTempDir = os.tmpdir();
 			var tempDir = path.join(osTempDir, 'intern', 'diagnostics', sessionId);
 
-			Diagnostics.createTempDir(sessionId);
+			FileWriter.createTempDir(sessionId);
 
 			assert.ok(
 				mkdirp.sync.calledWith(tempDir), 
@@ -597,9 +597,9 @@ define([
 		'createTempDir#withoutSession': function () {
 			fs.existsSync.returns(false);
 
-			Diagnostics.createTempDir();
+			FileWriter.createTempDir();
 
-			var sessionId = Diagnostics.generateRandomNumber.lastCall.returnValue.toString();
+			var sessionId = FileWriter.generateRandomNumber.lastCall.returnValue.toString();
 			var osTempDir = os.tmpdir();
 			var tempDir = path.join(osTempDir, 'intern', 'diagnostics', sessionId);
 

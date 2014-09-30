@@ -1,7 +1,7 @@
 var fs = require('fs');
 var chalk = require('chalk');
 var path = require('path');
-var diagnostics = require('./diagnostics');
+var FileWriter = require('./FileWriter');
 
 var Logger = function (envType, outDir, opts) {
 	var logStr;
@@ -9,12 +9,12 @@ var Logger = function (envType, outDir, opts) {
 	var sessionId;
 	var logFile;
 
-	this._outDir = outDir || diagnostics.createTempDir();
+	this._outDir = outDir || FileWriter.createTempDir();
 	this._verbose = opts && opts.verbose || false;
 	this._indentStr = opts && opts.indentStr || '    ';
 	this._outFile = 'test_logs.txt';
 
-	logFile = logFile = path.resolve(this._outDir, this._outFile);
+	logFile = path.resolve(this._outDir, this._outFile);
 	if (!fs.existsSync(logFile)) {
 		console.log(chalk.blue('Logs can be found at: ' + logFile) + '\n');
 	}
@@ -209,14 +209,13 @@ Logger.prototype.logFailure = function (obj, errorID, url, remote) {
 		var test,
 			suite,
 			sessionId,
-			errorID,
 			errorName,
 			errorMessage,
 			stackTrace,
 			envType,
 			completeErrorMessage,
 			doubleIndent,
-			diagnostics;
+			FileWriter;
 
 		sessionId = obj.sessionId;
 		if (obj.error.relatedTest) {
@@ -235,10 +234,10 @@ Logger.prototype.logFailure = function (obj, errorID, url, remote) {
 
 		if (remote) {
 			envType = remote.environmentType;
-			diagnostics = path.join(this._outDir, errorID.toString());
+			artifactsDir = path.join(this._outDir, errorID.toString());
 		} else {
 			envType = 'Node.js';
-			diagnostics = 'None';
+			artifactsDir = 'None';
 		}
 
 		if (completeErrorMessage === stackTrace) {
@@ -287,7 +286,7 @@ Logger.prototype.logFailure = function (obj, errorID, url, remote) {
 		this.log(doubleIndent + chalk.cyan('Platform:') + ' ' + envType, sessionId, true);
 		this.log(doubleIndent + chalk.cyan('ErrorID:') + ' ' + errorID, sessionId, true);
 		this.log(doubleIndent + chalk.cyan('URL:') + ' ' + unescape(url), sessionId, true);
-		this.log(doubleIndent + chalk.cyan('Diagnostics:') + ' ' + diagnostics, sessionId, true);
+		this.log(doubleIndent + chalk.cyan('Diagnostics:') + ' ' + artifactsDir, sessionId, true);
 
 		this.log(doubleIndent + chalk.cyan('Stacktrace:'), sessionId, true);
 		this.log(doubleIndent + chalk.cyan('==========='), sessionId, true);
@@ -386,7 +385,7 @@ Logger.prototype.getIndentation = function (sessionId) {
 Logger.prototype.dumpLogs = function () {
 	var outStr = '';
 	if(typeof this._log === 'string') {
-		diagnostics.writeTextLogs(this._log.trim(), this._outDir, this._outFile, true);
+		FileWriter.writeTextLogs(this._log.trim(), this._outDir, this._outFile, true);
 	} else {
 		outStr += this._log['init'];
 		delete this._log['init'];
@@ -409,7 +408,7 @@ Logger.prototype.dumpLogs = function () {
 		}
 
 		//Write the init logs
-		diagnostics.writeTextLogs(outStr.trim(), this._outDir, this._outFile, true);
+		FileWriter.writeTextLogs(outStr.trim(), this._outDir, this._outFile, true);
 	}
 }
 

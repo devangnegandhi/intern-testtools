@@ -9,11 +9,12 @@ define([
 	'dojo/node!istanbul/lib/report/text',
 	'dojo/node!istanbul/lib/report/lcovonly',
 	'dojo/node!chalk',
-	'dojo/node!../../../../reporters/lib/diagnostics',
+	'dojo/node!../../../../reporters/lib/FileWriter',
 	'dojo/node!../../../../reporters/lib/Logger',
+	'dojo/node!../../../../reporters/lib/BrowserArtifacts',
 	'dojo/node!istanbul/index',
 ], function (intern, util, args, fs, Collector, JsonReporter, LcovHtmlReporter, TextReporter, 
-		LcovReporter, chalk, Diagnostics, Logger) {
+		LcovReporter, chalk, FileWriter, Logger, BrowserArtifacts) {
 
 	var collector,
 		reporters,
@@ -63,7 +64,7 @@ define([
 		},
 		
 		'/suite/error': function (test) {
-			var errorID = Diagnostics.generateRandomNumber();
+			var errorID = FileWriter.generateRandomNumber();
 			if (sessions[test.sessionId]) {
 				var remote = sessions[test.sessionId].remote;
 				remote.getCurrentUrl().then(function (url) {
@@ -98,11 +99,12 @@ define([
 		},
 
 		'/test/fail': function (test) {
-			var errorID = Diagnostics.generateRandomNumber();
+			var errorID = FileWriter.generateRandomNumber();
 			if (sessions[test.sessionId]) {
 				var remote = sessions[test.sessionId].remote;
 				remote.getCurrentUrl().then(function (url) {
 					logger.logFailedTest(test, errorID, url, remote);
+					BrowserArtifacts.collectAllArtifacts(remote, logDir, errorID);
 				});
 			} else {
 				var url = 'N/A';
@@ -140,6 +142,7 @@ define([
 			});
 
 			logger.dumpLogs();
+
 		}
 	};
 });

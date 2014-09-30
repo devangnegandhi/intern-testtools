@@ -4,8 +4,8 @@
 define([
 	'dojo/node!intern/node_modules/leadfoot/helpers/pollUntil',
 	'dojo/node!cli-color/index',
-	'dojo/node!./lib/diagnostics'
-], function (pollUntil, color, Diagnostics) {
+	'dojo/node!./lib/FileWriter'
+], function (pollUntil, color, FileWriter) {
 
 	var hasGrouping = 'group' in console;
 	var sessions = {};
@@ -34,8 +34,8 @@ define([
 			console.log(' ');
 
 			
-			/*var diagnostics = new Diagnostics(); 
-			diagnostics.collectDiagnostics(remote);*/
+			/*var diagnostics = new FileWriter(); 
+			diagnostics.collectFileWriter(remote);*/
 		},
 
 		'/suite/start': function (suite) {
@@ -126,11 +126,11 @@ define([
 				stackTrace = 'No Stacktrace';
 			}
 
-			var errorID = Diagnostics.generateRandomNumber();
+			var errorID = FileWriter.generateRandomNumber();
 			var sessionId = suite.sessionId;
 			var remote = sessions[sessionId].remote;
 			var browserName = remote.environmentType.browserName;
-			var outputDir = Diagnostics.createTempDir(sessionId);
+			var outputDir = FileWriter.createTempDir(sessionId);
 
 			//make sure the page has loaded
 			remote.getPageLoadTimeout().then(pollUntil('return window.ready;', 5000));
@@ -144,7 +144,7 @@ define([
 
 			remote.getCurrentUrl().then(function (url) {
 				var errorLogsFileName = errorID + '_error_logs.txt';
-				Diagnostics.writeErrorLogs(suite.error, outputDir, errorLogsFileName);
+				FileWriter.writeErrorLogs(suite.error, outputDir, errorLogsFileName);
 
 				var realConsoleLog = console.log;
 				var logData = '';
@@ -169,7 +169,7 @@ define([
 				console.log('      ' + color.cyan('Platform:') + ' ' + remote.environmentType);
 				console.log('      ' + color.cyan('ErrorID:') + ' ' + errorID);
 				console.log('      ' + color.cyan('URL:') + ' ' + unescape(url));
-				console.log('      ' + color.cyan('Diagnostics:') + ' ' + outputDir);
+				console.log('      ' + color.cyan('FileWriter:') + ' ' + outputDir);
 
 				console.log('      ' + color.cyan('Stacktrace:'));
 				console.log('      ' + color.cyan('==========='));
@@ -178,18 +178,18 @@ define([
 
 				console.log = realConsoleLog;
 				var textLogsFileName = errorID + '_intern_logs.txt';
-				Diagnostics.writeTextLogs(logData, outputDir, textLogsFileName);
+				FileWriter.writeTextLogs(logData, outputDir, textLogsFileName);
 
 				remote.getPageSource().then(function (htmlSnapshot) {
 
 					var htmlSnapshotFileName = errorID + '_' + browserName + '_html_snapshot.html';
-					Diagnostics.writeTextLogs(htmlSnapshot, outputDir, htmlSnapshotFileName);
+					FileWriter.writeTextLogs(htmlSnapshot, outputDir, htmlSnapshotFileName);
 				});
 
 				remote.takeScreenshot().then(function (data) {
 
 					var imageFileName = errorID + '_' + browserName + '_screenshot.png';
-					Diagnostics.writeScreenshot(data, outputDir, imageFileName);
+					FileWriter.writeScreenshot(data, outputDir, imageFileName);
 
 				}, function (err) {
 
@@ -219,7 +219,7 @@ define([
 		remote.getLogsFor(logType).then(function (logs) {
 
 			var browserLogsFileName = errorID + '_' + browserName + '_' + logType + '_logs.txt';
-			Diagnostics.writeBrowserLogs(logs, outputDir, browserLogsFileName);
+			FileWriter.writeBrowserLogs(logs, outputDir, browserLogsFileName);
 
 		}, function (err) {
 
