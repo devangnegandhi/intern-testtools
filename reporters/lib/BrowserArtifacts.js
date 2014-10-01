@@ -4,7 +4,6 @@
 var path = require('path');
 var mkdirp = require('mkdirp');
 var FileWriter = require('./FileWriter');
-var pollUntil = require('../../node_modules/intern/node_modules/leadfoot/helpers/pollUntil');
 
 var BrowserArtifacts = {
 
@@ -61,9 +60,10 @@ var BrowserArtifacts = {
 	collectBrowserLog: function(remote, outDir, logType) {
 
 		remote.getLogsFor(logType).then(function (logs) {
-
-			var fileName = logType + '_logs.txt';
-			FileWriter.writeBrowserLogs(logs, outDir, fileName);
+			if(logs.length) {
+				var fileName = logType + '_logs.txt';
+				FileWriter.writeBrowserLogs(logs, outDir, fileName);
+			}
 
 		}, function (err) {
 
@@ -110,9 +110,6 @@ var BrowserArtifacts = {
 		mkdirp.sync(artifactsDir);
 
 		try {
-			//make sure the page has loaded
-			remote.getPageLoadTimeout().then(pollUntil('return window.ready;', 1000));
-
 			this.takeScreenshot(remote, artifactsDir);
 			this.dumpPageSource(remote, artifactsDir);
 			this.collectAllBrowserLogs(remote, artifactsDir);
