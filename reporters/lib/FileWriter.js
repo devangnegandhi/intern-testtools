@@ -119,13 +119,13 @@ var FileWriter = {
 	/**
 	 * This method create a new temp directory
 	 * @this diagnostics
-	 * @param  {String=} sessionID The ID of the session
+	 * @param  {Number} randomNo Some random number
 	 * @return {String} The full path of the created directory
 	 */
-	createTempDir: function (sessionID) {
-		var randomNumber = sessionID || this.generateRandomNumber().toString();
+	createTempDir: function (randomNo) {
+		var randomNumber = randomNo.toString() || this.generateRandomNumber().toString();
 		var osTempDir = os.tmpdir();
-		var tempDir = path.join(osTempDir, 'intern', 'diagnostics', randomNumber);
+		var tempDir = path.join(osTempDir, 'intern', randomNumber);
 
 		if(!fs.existsSync(tempDir)) {
 			mkdirp.sync(tempDir);

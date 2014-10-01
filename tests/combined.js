@@ -3,23 +3,25 @@ define([
 	'intern/lib/util',
 	'intern/lib/args',
 	'dojo/node!fs',
+	'dojo/node!path',
 	'dojo/node!istanbul/lib/collector',
 	'dojo/node!istanbul/lib/report/json',
 	'dojo/node!istanbul/lib/report/html',
 	'dojo/node!istanbul/lib/report/text',
 	'dojo/node!istanbul/lib/report/lcovonly',
-	'dojo/node!chalk',
 	'dojo/node!../../../../reporters/lib/FileWriter',
 	'dojo/node!../../../../reporters/lib/Logger',
 	'dojo/node!../../../../reporters/lib/BrowserArtifacts',
-	'dojo/node!istanbul/index',
-], function (intern, util, args, fs, Collector, JsonReporter, LcovHtmlReporter, TextReporter, 
-		LcovReporter, chalk, FileWriter, Logger, BrowserArtifacts) {
+	'dojo/node!istanbul/index'
+], function (intern, util, args, fs, path, Collector, JsonReporter, LcovHtmlReporter, TextReporter, 
+		LcovReporter, FileWriter, Logger, BrowserArtifacts) {
 
 	var collector,
 		reporters,
 		sessions,
 		logDir,
+		tmpDir,
+		coverageDir,
 		logger,
 		type;
 
@@ -28,24 +30,32 @@ define([
 			sessions = {};
 			reporters = [];
 			collector = new Collector();
-			logDir = './logs/';
 
 			if (process.env.TRAVIS_JOB_NUMBER) {
-				logDir += 'build_' + process.env.TRAVIS_JOB_NUMBER;
+				logDir =  path.resolve('.', 'logs', 'build_' + process.env.TRAVIS_JOB_NUMBER);
+				tmpDir = FileWriter.createTempDir(process.env.TRAVIS_JOB_NUMBER);
 			} else {
-				logDir += args.runId;
+				logDir =  path.resolve('.', 'logs', args.runId.toString());
+				tmpDir = FileWriter.createTempDir(args.runId);
 			}
+
+			coverageDir = path.resolve(logDir, 'coverage');
 
 			if (intern.mode === 'client') {
 				type = Logger.Env.NODE;
 
 				logger = new Logger(type, logDir);
-				reporters = [ new JsonReporter() ];
+				reporters = [ new JsonReporter({dir: tmpDir}) ];
 			} else {
 				type = Logger.Env.BROWSER;
 
 				logger = new Logger(type, logDir);
-				reporters = [ new TextReporter(), new LcovHtmlReporter(), new LcovReporter() ];
+				reporters = [ 
+					new TextReporter(), 
+					new LcovHtmlReporter({dir: coverageDir}), 
+					new LcovReporter({dir: coverageDir}),
+					new JsonReporter({dir: tmpDir})
+				];
 			}	
 		},
 
@@ -133,8 +143,12 @@ define([
 		},
 
 		stop: function () {
-			if (intern.mode === 'runner' && fs.existsSync('coverage-final.json')) {
-				collector.add(JSON.parse(fs.readFileSync('coverage-final.json')));
+			var coverageJSONFile = path.resolve(tmpDir, 'coverage-final.json');
+			if (fs.existsSync(coverageJSONFile)) {
+				collector.add(JSON.parse(fs.readFileSync(coverageJSONFile)));
+
+				//Delete the file
+				fs.unlinkSync(coverageJSONFile);
 			}
 
 			reporters.forEach(function (reporter) {
