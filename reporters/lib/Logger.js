@@ -16,7 +16,7 @@ var Logger = function (envType, outDir, opts) {
 
 	logFile = path.resolve(this._outDir, this._outFile);
 	if (!fs.existsSync(logFile)) {
-		console.log(chalk.blue('Logs can be found at: ' + logFile) + '\n');
+		console.log(chalk.blue('Logs can be found at: ' + this._outDir) + '\n');
 	}
 
 	if (envType === Logger.Env.NODE) {
