@@ -21,7 +21,7 @@ var FileWriter = {
 		dir = dir || this.createTempDir();
 
 		var imagePath = path.join(dir, name);
-		fs.writeFileSync(imagePath, data, 'binary');
+		fs.writeFileSync(imagePath, data, 'base64');
 
 		return imagePath;
 	},
@@ -123,9 +123,12 @@ var FileWriter = {
 	 * @return {String} The full path of the created directory
 	 */
 	createTempDir: function (randomNo) {
-		var randomNumber = randomNo.toString() || this.generateRandomNumber().toString();
+		var randomNumber = randomNo || this.generateRandomNumber();
 		var osTempDir = os.tmpdir();
-		var tempDir = path.join(osTempDir, 'intern', randomNumber);
+		var tempDir;
+		
+		randomNumber = randomNumber.toString();
+		tempDir = path.join(osTempDir, 'intern', randomNumber);
 
 		if(!fs.existsSync(tempDir)) {
 			mkdirp.sync(tempDir);

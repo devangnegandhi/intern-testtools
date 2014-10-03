@@ -190,7 +190,7 @@ define([
 
 				assert.equal(
 					Object.keys(config).length, 
-					expectedProperties.length + 1, 
+					expectedProperties.length, 
 					'The number of propertis in the intern config is wrong'
 				);
 
@@ -204,7 +204,7 @@ define([
 				assert.equal(config.proxyPort, 9000, 'Please check the proxyPort property');
 				assert.equal(
 					config.proxyUrl, 
-					'http://localhost:900/', 
+					'http://localhost:9000/', 
 					'Please check the proxyUrl property'
 				);
 
@@ -268,7 +268,7 @@ define([
 
 				assert.equal(
 					Object.keys(config).length, 
-					expectedProperties.length + 1, 
+					expectedProperties.length, 
 					'The number of propertis in the intern config is wrong'
 				);
 
@@ -282,7 +282,7 @@ define([
 				assert.equal(config.proxyPort, 9000, 'Please check the proxyPort property');
 				assert.equal(
 					config.proxyUrl, 
-					'http://localhost:900/', 
+					'http://localhost:9000/', 
 					'Please check the proxyUrl property'
 				);
 

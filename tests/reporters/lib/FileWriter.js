@@ -15,7 +15,7 @@ define([
 		sandbox;
 
 	registerSuite({
-		name: 'reporters/lib/diagnostics',
+		name: 'reporters/lib/FileWriter',
 
 		setup: function () {
 			sandbox = sinon.sandbox.create();
@@ -43,7 +43,34 @@ define([
 				fs.writeFileSync.calledWith(
 					path.join(logFilePath, logFileName), 
 					logData, 
-					'utf-8'
+					{
+						encoding: 'utf-8',
+						flag: 'w'
+					}
+				), 
+				'FileWriter.writeTextLogs failed to write correct data or to the correct file'
+			);
+
+			assert.equal(ret, path.join(logFilePath, logFileName),
+				'Return value of FileWriter.writeTextLogs was wrong'
+			);
+		},
+
+		'writeTextLogs#withAppend': function () {
+			var logFilePath = path.join('some', 'dir');
+			var logFileName = 'filename.txt';
+			var logData = 'some text info';
+
+			var ret = FileWriter.writeTextLogs(logData, logFilePath, logFileName, true);
+
+			assert.ok(
+				fs.writeFileSync.calledWith(
+					path.join(logFilePath, logFileName), 
+					'\n' + logData, 
+					{
+						encoding: 'utf-8',
+						flag: 'a'
+					}
 				), 
 				'FileWriter.writeTextLogs failed to write correct data or to the correct file'
 			);
@@ -66,7 +93,10 @@ define([
 				fs.writeFileSync.calledWith(
 					path.join(logFilePath, logFileName), 
 					logData, 
-					'utf-8'
+					{
+						encoding: 'utf-8',
+						flag: 'w'
+					}
 				), 
 				'FileWriter.writeTextLogs failed to write correct data or to the correct file'
 			);
@@ -84,7 +114,11 @@ define([
 			assert.ok(
 				fs.writeFileSync.calledWith(
 					path.join(logFilePath, logFileName), 
-					logData, 'utf-8'
+					logData, 
+					{
+						encoding: 'utf-8',
+						flag: 'w'
+					}
 				), 
 				'FileWriter.writeTextLogs failed to write correct data or to the correct file'
 			);
@@ -111,7 +145,10 @@ define([
 				fs.writeFileSync.calledWith(
 					path.join(logFilePath, logFileName), 
 					logData, 
-					'utf-8'
+					{
+						encoding: 'utf-8',
+						flag: 'w'
+					}
 				), 
 				'FileWriter.writeTextLogs failed to write correct data or to the correct file'
 			);
@@ -128,7 +165,10 @@ define([
 				fs.writeFileSync.calledWith(
 					path.join(logFilePath, logFileName), 
 					logData, 
-					'utf-8'
+					{
+						encoding: 'utf-8',
+						flag: 'w'
+					}
 				), 
 				'FileWriter.writeTextLogs failed to write correct data or to the correct file'
 			);
@@ -145,9 +185,30 @@ define([
 				fs.writeFileSync.calledWith(
 					path.join(logFilePath, logFileName), 
 					logData, 
-					'utf-8'
+					{
+						encoding: 'utf-8',
+						flag: 'w'
+					}
 				), 
 				'FileWriter.writeTextLogs failed to write correct data or to the correct file'
+			);
+		},
+
+		'writeTextLogs#withoutDirExists': function () {
+			fs.existsSync.returns(false);
+			var logFilePath = path.join('some', 'dir');
+			var logFileName = 'filename.txt';
+			var logData = 'some text info';
+
+			var ret = FileWriter.writeTextLogs(logData, logFilePath, logFileName, true);
+
+			assert.ok(
+				mkdirp.sync.calledWith(logFilePath), 
+				'mkdirp called to create the wrong directory'
+			);
+
+			assert.equal(ret, path.join(logFilePath, logFileName),
+				'Return value of FileWriter.writeTextLogs was wrong'
 			);
 		},
 
@@ -582,11 +643,11 @@ define([
 		'createTempDir': function () {
 			fs.existsSync.returns(false);
 
-			var sessionId = 'someSessionId';
+			var randomNo = 1234;
 			var osTempDir = os.tmpdir();
-			var tempDir = path.join(osTempDir, 'intern', 'diagnostics', sessionId);
+			var tempDir = path.join(osTempDir, 'intern', randomNo.toString());
 
-			FileWriter.createTempDir(sessionId);
+			FileWriter.createTempDir(randomNo);
 
 			assert.ok(
 				mkdirp.sync.calledWith(tempDir), 
@@ -601,7 +662,7 @@ define([
 
 			var sessionId = FileWriter.generateRandomNumber.lastCall.returnValue.toString();
 			var osTempDir = os.tmpdir();
-			var tempDir = path.join(osTempDir, 'intern', 'diagnostics', sessionId);
+			var tempDir = path.join(osTempDir, 'intern', sessionId);
 
 			assert.ok(
 				mkdirp.sync.calledWith(tempDir), 
