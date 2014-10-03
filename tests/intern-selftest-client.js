@@ -62,6 +62,7 @@ define({
 	suites: [
 		'tests/config/intern',
 		'tests/reporters/lib/FileWriter',
+		'tests/reporters/lib/BrowserArtifacts',
 		'tests/reporters/summary'
 	],
 

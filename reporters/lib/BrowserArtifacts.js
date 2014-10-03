@@ -15,8 +15,8 @@ var BrowserArtifacts = {
 	takeScreenshot: function (remote, outDir) {
 		remote.takeScreenshot().then(function (screenshot) {
 
-			var imageFileName = 'browser_screenshot.png';
-			FileWriter.writeScreenshot(screenshot, outDir, imageFileName);
+			var fileName = 'browser_screenshot.png';
+			FileWriter.writeScreenshot(screenshot, outDir, fileName);
 
 		}, function (err) {
 
@@ -109,13 +109,9 @@ var BrowserArtifacts = {
 
 		mkdirp.sync(artifactsDir);
 
-		try {
-			this.takeScreenshot(remote, artifactsDir);
-			this.dumpPageSource(remote, artifactsDir);
-			this.collectAllBrowserLogs(remote, artifactsDir);
-		} catch (e) {
-			console.log(e);
-		}
+		this.takeScreenshot(remote, artifactsDir);
+		this.dumpPageSource(remote, artifactsDir);
+		this.collectAllBrowserLogs(remote, artifactsDir);
 	}
 }
 
