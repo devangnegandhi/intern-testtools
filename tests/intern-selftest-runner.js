@@ -58,7 +58,7 @@ define({
 	},
 
 	reporters: [
-		'tests/combined'
+		'combined'
 		//'reporters/lcovhtml_custom'
 	],
 

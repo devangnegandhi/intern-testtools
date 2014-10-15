@@ -12,7 +12,7 @@ define([
 	'dojo/node!../../../reporters/lib/BrowserArtifacts'
 ], function (registerSuite, assert, Deferred, path, mkdirp, sinon, FileWriter, BrowserArtifacts) {
 	var sandbox,
-		mockRemote;
+		mockRemoteAPI;
 
 	mockRemoteAPI = {
 		takeScreenshot: function () {},

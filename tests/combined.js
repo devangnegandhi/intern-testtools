@@ -81,8 +81,7 @@ define([
 					logger.logFailedTest(test, errorID, url, remote);
 				});
 			} else {
-				var url = 'N/A';
-				logger.logFailedTest(test, errorID, url);
+				logger.logFailedTest(test, errorID);
 			}
 		},
 

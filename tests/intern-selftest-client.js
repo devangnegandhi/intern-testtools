@@ -50,7 +50,7 @@ define({
 	},
 
 	reporters: [
-		'tests/combined'
+		'combined'
 		// 'console',
 		// 'lcovhtml',
 		// 'lcov',
@@ -63,6 +63,7 @@ define({
 		'tests/config/intern',
 		'tests/reporters/lib/FileWriter',
 		'tests/reporters/lib/BrowserArtifacts',
+		'tests/reporters/lib/Logger',
 		'tests/reporters/summary'
 	],
 
