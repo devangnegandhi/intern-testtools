@@ -712,6 +712,64 @@ define([
                 chalk.stripColor(skipStr),
                 'Logger failed to save log in _log the skipped test when verbosity is true'
             );
+        }, 
+
+        'logSkippedTest#verboseOff': function () {
+            var consoleStr,
+                logger,
+                consoleStub,
+                warningStr,
+                str = 'someWarning';
+
+            consoleStub = sinon.stub(console, 'log');
+            logger = new Logger(Logger.Env.BROWSER);
+            logger.logSuiteStart(mockSuite);
+            logger.logWarning(str);
+            consoleStr = console.log.lastCall.args[0];
+            consoleStub.restore();
+
+            warningStr = chalk.yellow('WARN:') + ' ' + str;
+
+            assert.equal(
+                consoleStr,
+                warningStr,
+                'Logger failed to console log the warning when verbosity is failed'
+            );
+            
+            assert.include(
+                logger._log['warnings'],
+                '\n' + logger._indentStr + chalk.stripColor(warningStr),
+                'Logger failed to save log in _log the warning when verbosity is false'
+            );
+        }, 
+
+        'logWarning#verbose': function () {
+            var consoleStr,
+                logger,
+                consoleStub,
+                warningStr,
+                str = 'someWarning';
+
+            consoleStub = sinon.stub(console, 'log');
+            logger = new Logger(Logger.Env.NODE, {verbose: true});
+            logger.logSuiteStart(mockSuiteWithNoSession);
+            logger.logWarning(str);
+            consoleStr = console.log.lastCall.args[0];
+            consoleStub.restore();
+
+            warningStr = chalk.yellow('WARN:') + ' ' + str;
+
+            assert.equal(
+                consoleStr,
+                logger._indentStr + logger._indentStr +  warningStr,
+                'Logger failed to console log the warning when verbosity is true'
+            );
+            
+            assert.include(
+                logger._log,
+                chalk.stripColor(warningStr),
+                'Logger failed to save log in _log the warning when verbosity is true'
+            );
         },
 
         'logFailedTest': function () {
@@ -946,6 +1004,7 @@ define([
                 init: 'someInit',
                 tunnelLogs: 'someTunnelLogs',
                 fatalErrors: 'someFatalErrors',
+                warnings: 'someWarnings',
                 someSessionId: 'someSessionIdLogs',
                 anotherSessionId: 'anotherSessionIdLogs',
                 yetAnotherSessionId: 'yetAnotherSessionIdLogs'
@@ -959,12 +1018,14 @@ define([
                 if (mockLogObj.hasOwnProperty(sessionId)) {
                     if (sessionId !== 'init'
                         && sessionId !== 'tunnelLogs'
+                        && sessionId !== 'warnings'
                         && sessionId !== 'fatalErrors') {
 
                         mockLog += mockLogObj[sessionId];
                     }
                 }
             }
+            mockLog += mockLogObj['warnings'];
             mockLog += mockLogObj['fatalErrors'];
 
             mockOutDir = "SomeDir";
@@ -1008,7 +1069,7 @@ define([
             );
         }, 
 
-        'dumpLogs#withBrowserEnvWitoutFatalErrors': function () {
+        'dumpLogs#withBrowserEnvWithoutFatalErrors': function () {
             var logger,
                 consoleStub,
                 logStr,

@@ -124,7 +124,7 @@ Logger.prototype.log = function (logStr, sessionId, forceLog) {
 
 /**
  * The method to log the intern session start
- * @param  {Object} remote The intern remote object
+ * @param  {Object} remote  The intern remote object
  */
 Logger.prototype.logSessionStart = function (remote) {
     var logStr = 'Testing on ' + remote.environmentType;
@@ -145,7 +145,7 @@ Logger.prototype.logSessionStart = function (remote) {
 
 /**
  * Method to log the end of the session
- * @param  {Object} remote The intern remote object
+ * @param  {Object} remote  The intern remote object
  */
 Logger.prototype.logSessionEnd = function (remote) {
     /* 
@@ -156,7 +156,7 @@ Logger.prototype.logSessionEnd = function (remote) {
 
 /**
  * Log that the suite has started
- * @param  {Object} suite The intern suite object
+ * @param  {Object} suite   The intern suite object
  */
 Logger.prototype.logSuiteStart = function (suite) {
     var logStr;
@@ -177,7 +177,7 @@ Logger.prototype.logSuiteStart = function (suite) {
 
 /**
  * Log that the suite has ended
- * @param  {Object} suite The intern suite object
+ * @param  {Object} suite   The intern suite object
  */
 Logger.prototype.logSuiteEnd = function (suite) {
     /*
@@ -193,7 +193,7 @@ Logger.prototype.logSuiteEnd = function (suite) {
 
 /**
  * Method to log a passed intern test
- * @param  {Object} test The intern test object
+ * @param  {Object} test    The intern test object
  */
 Logger.prototype.logPassedTest = function (test) {
     var logStr = chalk.green('PASS:') + ' ' + test.name + ' (' + test.timeElapsed + 'ms)';
@@ -203,12 +203,29 @@ Logger.prototype.logPassedTest = function (test) {
 
 /**
  * Method to log a skipped intern test
- * @param  {Object} test The intern test object
+ * @param  {Object} test    The intern test object
  */
 Logger.prototype.logSkippedTest = function (test) {
     var logStr = chalk.yellow('SKIP:') + ' ' + test.name + ' (' + test.timeElapsed + 'ms)';
 
     this.log(logStr, test.sessionId, true);
+}
+
+/**
+ * Method to log a warning
+ * @param  {string} warn    A warning string
+ */
+Logger.prototype.logWarning = function (warn) {
+    var sessionId;
+    var logStr = chalk.yellow('WARN:') + ' ' + warn;
+
+
+    // Assign a sessionId if needed
+    if (typeof this._log === "object") {
+        sessionId = 'warnings';
+    }
+
+    this.log(logStr, sessionId, true);
 }
 
 /**
@@ -429,7 +446,7 @@ Logger.prototype._getIndentation = function (sessionId) {
     if (!sessionId) {
         ret = this._tabs;
     } else {
-        if (typeof this._tabs[sessionId] === "undefined") {
+        if (sessionId !== 'init' && typeof this._tabs[sessionId] === "undefined") {
             this._indent(sessionId);
         }
 
@@ -463,11 +480,16 @@ Logger.prototype.dumpLogs = function () {
             if (this._log.hasOwnProperty(sessionId)) {
                     if (sessionId !== 'init'
                         && sessionId !== 'tunnelLogs'
+                        && sessionId !== 'warnings'
                         && sessionId !== 'fatalErrors') {
 
                     outStr += this._log[sessionId];
                 }
             }
+        }
+
+        if (this._log['warnings']) {
+            outStr += this._log['warnings'];
         }
 
         if (this._log['fatalErrors']) {
