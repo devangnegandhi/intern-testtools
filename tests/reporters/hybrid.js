@@ -225,12 +225,16 @@ define([
 		'start#localAndClientMode': function() {
 
 			var oldMode,
-				oldArgsRunId;
+				oldArgsRunId,
+				oldTravisJobNumber;
 
 			oldMode = intern.mode;
 			oldArgsRunId = args.runId;
+			oldTravisJobNumber = process.env.TRAVIS_JOB_NUMBER;
+
 			intern.mode = "client";
 			args.runId = 1234;
+			delete process.env.TRAVIS_JOB_NUMBER;
 
 			hybrid.start();
 
@@ -272,6 +276,7 @@ define([
 
 			intern.mode = oldMode;
 			args.runId = oldArgsRunId;
+			process.env.TRAVIS_JOB_NUMBER = oldTravisJobNumber;
 		},
 
 		'start#travisCIAndRunnerMode': function() {

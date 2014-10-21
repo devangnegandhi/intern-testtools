@@ -21,7 +21,7 @@ define({
 	// capabilities options specified for an environment will be copied as-is
 	environments: [
 		{ browserName: 'phantomjs' },
-		{ browserName: 'chrome' }
+		// { browserName: 'chrome' }
 	],
 
 	// Maximum number of simultaneous integration tests that should be executed on the remote WebDriver service
