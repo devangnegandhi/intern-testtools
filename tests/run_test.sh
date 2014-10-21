@@ -10,3 +10,6 @@ my_child_PID=$!
 rand=$RANDOM
 intern-client config=tests/intern-selftest-client runId=$rand
 intern-runner config=tests/intern-selftest-runner runId=$rand
+
+# node --debug-brk ./node_modules/.bin/intern-client config=tests/intern-selftest-client runId=$rand 
+# node --debug-brk ./node_modules/.bin/intern-runner config=tests/intern-selftest-runner runId=$rand
