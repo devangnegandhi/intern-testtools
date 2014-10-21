@@ -51,6 +51,7 @@ define({
 
 	reporters: [
 		'combined'
+		// 'reporters/hybrid'
 		// 'console',
 		// 'lcovhtml',
 		// 'lcov',
@@ -64,6 +65,7 @@ define({
 		'tests/reporters/lib/FileWriter',
 		'tests/reporters/lib/BrowserArtifacts',
 		'tests/reporters/lib/Logger',
+		'tests/reporters/hybrid',
 		'tests/reporters/summary'
 	],
 

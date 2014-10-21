@@ -59,6 +59,7 @@ define({
 
 	reporters: [
 		'combined'
+		// 'reporters/hybrid'
 		//'reporters/lcovhtml_custom'
 	],
 

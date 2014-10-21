@@ -31,9 +31,12 @@ define([
 			reporters = [];
 			collector = new Collector();
 
+			// If travis job number env var found, then set log dir name as build numbers
 			if (process.env.TRAVIS_JOB_NUMBER) {
 				logDir =  path.resolve('.', 'logs', 'build_' + process.env.TRAVIS_JOB_NUMBER);
 				tmpDir = FileWriter.createTempDir(process.env.TRAVIS_JOB_NUMBER);
+
+			// Else create log dir from command line arg 'runId'
 			} else {
 				logDir =  path.resolve('.', 'logs', args.runId.toString());
 				tmpDir = FileWriter.createTempDir(args.runId);
@@ -44,12 +47,12 @@ define([
 			if (intern.mode === 'client') {
 				type = Logger.Env.NODE;
 
-				logger = new Logger(type, logDir);
+				logger = new Logger(type, logDir, {verbose: true});
 				reporters = [ new JsonReporter({dir: tmpDir}) ];
 			} else {
 				type = Logger.Env.BROWSER;
 
-				logger = new Logger(type, logDir);
+				logger = new Logger(type, logDir, {verbose: true});
 				reporters = [ 
 					new TextReporter(), 
 					new LcovHtmlReporter({dir: coverageDir}), 
@@ -73,15 +76,15 @@ define([
 			logger.logSuiteStart(suite);
 		},
 		
-		'/suite/error': function (test) {
+		'/suite/error': function (suite) {
 			var errorID = FileWriter.generateRandomNumber();
-			if (sessions[test.sessionId]) {
-				var remote = sessions[test.sessionId].remote;
+			if (sessions[suite.sessionId]) {
+				var remote = sessions[suite.sessionId].remote;
 				remote.getCurrentUrl().then(function (url) {
-					logger.logFailedTest(test, errorID, url, remote);
+					logger.logFailedTest(suite, errorID, url, remote);
 				});
 			} else {
-				logger.logFailedTest(test, errorID);
+				logger.logFailedTest(suite, errorID);
 			}
 		},
 
@@ -92,7 +95,7 @@ define([
 				}
 
 				sessions[suite.sessionId].suite = suite;
-			} else if(suite.name !== 'main') {
+			} else {
 				logger.logSuiteEnd(suite);
 			}
 
@@ -104,7 +107,7 @@ define([
 		},
 
 		'/test/skip': function (test) {
-			logger.logSkippedTest(test);
+			logger.	logSkippedTest(test);
 		},
 
 		'/test/fail': function (test) {
