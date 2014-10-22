@@ -50,8 +50,8 @@ define({
 	},
 
 	reporters: [
-		'combined',
-		// 'reporters/hybrid'
+		// 'combined',
+		'reporters/hybrid',
 		// 'console',
 		// 'lcovhtml',
 		'lcov',
@@ -74,7 +74,7 @@ define({
 	],
 
 	// A regular expression matching URLs to files that should not be included in code coverage analysis
-	excludeInstrumentation: /^(?:tests|node_modules|combined)\//,
+	excludeInstrumentation: /^(?:tests|node_modules|logs)\//,
 
 	isSelfTestConfig: true,
 
