@@ -50,7 +50,7 @@ define({
 	},
 
 	reporters: [
-		'combined'
+		'combined',
 		// 'reporters/hybrid'
 		// 'console',
 		// 'lcovhtml',
