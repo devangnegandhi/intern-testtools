@@ -1,9 +1,11 @@
-define([
+	define([
 	'intern',
 	'intern/lib/util',
 	'intern/lib/args',
 	'dojo/node!fs',
 	'dojo/node!path',
+	'dojo/node!glob',
+	'dojo/node!istanbul/lib/instrumenter',
 	'dojo/node!istanbul/lib/collector',
 	'dojo/node!istanbul/lib/report/json',
 	'dojo/node!istanbul/lib/report/html',
@@ -13,8 +15,8 @@ define([
 	'dojo/node!../../../../reporters/lib/Logger',
 	'dojo/node!../../../../reporters/lib/BrowserArtifacts',
 	'dojo/node!istanbul/index'
-], function (intern, util, args, fs, path, Collector, JsonReporter, LcovHtmlReporter, TextReporter, 
-		LcovReporter, FileWriter, Logger, BrowserArtifacts) {
+], function (intern, util, args, fs, path, glob, Instrumenter, Collector, JsonReporter,
+		LcovHtmlReporter, TextReporter, LcovReporter, FileWriter, Logger, BrowserArtifacts) {
 
 	var collector,
 		reporters,
@@ -60,6 +62,10 @@ define([
 					new JsonReporter({dir: tmpDir})
 				];
 			}	
+
+			if (typeof __internCoverage !== 'undefined' && intern.config.instrumentUnloadedFiles) {
+				this.instrumentUnloadedFiles();
+			}
 		},
 
 		'/session/start': function (remote) {
@@ -159,6 +165,31 @@ define([
 
 			logger.dumpLogs();
 
+		},
+
+		instrumentUnloadedFiles: function() {
+			var fileNames = glob.sync('**/*.js');
+			var instrumenter = new Instrumenter();
+
+			var fileSrc;
+			var coverage;
+
+			for( var i = 0; i< fileNames.length; i++) {
+				if(!intern.config.excludeInstrumentation.test(fileNames[i])) {
+					fileNames[i] = path.resolve(fileNames[i]);
+
+					//console.log(coverageObj);
+					if(!__internCoverage[fileNames[i]]) {
+						fileSrc = fs.readFileSync(fileNames[i], "utf8");
+						instrumenter.instrumentSync(fileSrc.toString(), fileNames[i]);
+						coverage = instrumenter.lastFileCoverage();
+
+						if (coverage && !__internCoverage[fileNames[i]]) {
+							__internCoverage[fileNames[i]] = coverage;
+						}
+					}
+				}
+			}
 		}
-	};
+	}; 
 });
