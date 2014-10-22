@@ -1,6 +1,6 @@
 html-report/
 node_modules/
-lcov.info
+*lcov.info
 coverage-final.json
 logs/
 *.*~

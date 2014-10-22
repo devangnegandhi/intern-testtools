@@ -54,7 +54,7 @@ define({
 		// 'reporters/hybrid'
 		// 'console',
 		// 'lcovhtml',
-		// 'lcov',
+		'lcov',
 		//'reporters/lcovhtml_custom'
 		// 'reporters/summary'
 	],
