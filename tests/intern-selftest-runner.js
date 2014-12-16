@@ -58,10 +58,10 @@ define({
 	},
 
 	reporters: [
-		// 'combined',
+		'combined',
 		// 'lcovhtml',
-		'lcov',
-		'reporters/hybrid'
+		// 'lcov',
+		// 'reporters/hybrid'
 		//'reporters/lcovhtml_custom'
 	],
 

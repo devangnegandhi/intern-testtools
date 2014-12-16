@@ -11,6 +11,8 @@ define([
 	'dojo/node!sinon',
 	'dojo/node!fs',
 	'dojo/node!path',
+	'dojo/node!glob',
+	'dojo/node!istanbul/lib/instrumenter',
 	'dojo/node!istanbul/lib/collector',
 	'dojo/node!istanbul/lib/report/json',
 	'dojo/node!istanbul/lib/report/html',
@@ -20,12 +22,14 @@ define([
 	'dojo/node!../../reporters/lib/Logger',
 	'dojo/node!../../reporters/lib/BrowserArtifacts',
 	// 'reporters/hybrid'
-], function (registerSuite, assert, intern, args, Deferred, mockery, sinon, fs, path, Collector, 
-			JsonReporter, LcovHtmlReporter, TextReporter, LcovReporter,FileWriter, Logger, BrowserArtifacts) {
+], function (registerSuite, assert, intern, args, Deferred, mockery, sinon, fs, path, glob, Instrumenter, 
+			Collector, JsonReporter, LcovHtmlReporter, TextReporter, LcovReporter,FileWriter, Logger, 
+			BrowserArtifacts) {
 
 	var mockLogger;
-	var zeroCoverageStub;
-	var mockJsonReporter, mockLcovHtmlReporter, mockTextReporter, mockLcovReporter;  
+	var instrumentUnloadedFilesStub;
+	var mockJsonReporter, mockLcovHtmlReporter, mockTextReporter, mockLcovReporter, mockFileWriter,
+		mockGlob;  
 	var hybrid;
 	var randomNumber = 999;
 	var mockTempDir = '/some/temp/dir/';
@@ -158,6 +162,8 @@ define([
 			//Mocking FileWriter module
 			sandbox.stub(FileWriter);
 			sandbox.stub(BrowserArtifacts);
+			sandbox.stub(glob, "sync");
+			glob.sync.returns([]);
 
 			// Always returning 999 for random number generator
 			FileWriter.generateRandomNumber.returns(randomNumber);
@@ -176,6 +182,7 @@ define([
 				= (parseInt(mockRemote.sessionId) + 1) + '';
 
 			FileWriter.createTempDir.returns(mockTempDir + mockSuite.sessionId);
+
 
 			mockLogger = sinon.stub();
 			mockLogger.Env = Logger.Env;
@@ -207,7 +214,6 @@ define([
             require.undef('reporters/hybrid');
 			require([ 'reporters/hybrid' ], function (hybridUsingMock) {
 				hybrid = hybridUsingMock;
-				zeroCoverageStub = sinon.stub(hybrid, "instrumentUnloadedFiles");
 				dfd.resolve();
 			});
 
@@ -215,7 +221,7 @@ define([
 		},
 
 		afterEach: function() {
-			zeroCoverageStub.restore();
+			// instrumentUnloadedFilesStub.restore();
 			mockery.disable();
             mockery.deregisterAll();
             require.undef('reporters/hybrid');
@@ -225,18 +231,21 @@ define([
 			sandbox.restore();
 		},
 
-		'start#localAndClientMode': function() {
+		'start#localRandomLogDirAndClientMode': function() {
 
 			var oldMode,
 				oldArgsRunId,
+				oldArgsLogDir,
 				oldTravisJobNumber;
 
 			oldMode = intern.mode;
 			oldArgsRunId = args.runId;
+			oldArgsLogDir = args.logDir;
 			oldTravisJobNumber = process.env.TRAVIS_JOB_NUMBER;
 
 			intern.mode = "client";
 			args.runId = 1234;
+			args.logDir = undefined;
 			delete process.env.TRAVIS_JOB_NUMBER;
 
 			hybrid.start();
@@ -279,6 +288,68 @@ define([
 
 			intern.mode = oldMode;
 			args.runId = oldArgsRunId;
+			args.logDir = oldArgsLogDir;
+			process.env.TRAVIS_JOB_NUMBER = oldTravisJobNumber;
+		},
+
+		'start#cliLogDirAndClientMode': function() {
+
+			var oldMode,
+				oldArgsRunId,
+				oldArgsLogDir,
+				oldTravisJobNumber;
+
+			oldMode = intern.mode;
+			oldArgsRunId = args.runId;
+			oldArgsLogDir = args.logDir;
+			oldTravisJobNumber = process.env.TRAVIS_JOB_NUMBER;
+
+			intern.mode = "client";
+			args.runId = 1234;
+			args.logDir = "someLogDir";
+			delete process.env.TRAVIS_JOB_NUMBER;
+
+			hybrid.start();
+
+			assert.deepEqual(
+				mockLogger.lastCall.args, 
+				[
+					mockLogger.Env.NODE,
+					path.resolve(args.logDir),
+					{
+						verbose: true
+					}
+				], 
+				'hybrid.start failed to initialize Logger with correct args'
+			);
+
+			assert.deepEqual(
+				mockJsonReporter.lastCall.args[0], 
+				{dir: FileWriter.createTempDir.lastCall.returnValue}, 
+				'hybrid.start failed to initialize JsonReporter correctly for NODE env'
+			);
+
+			assert.equal(
+				mockTextReporter.callCount, 
+				0, 
+				'hybrid.start wrongly initialized TextReporter for NODE env'
+			);
+
+			assert.equal(
+				mockLcovReporter.callCount, 
+				0, 
+				'hybrid.start wrongly initialized LcovReporter for NODE env'
+			);
+
+			assert.equal(
+				mockLcovHtmlReporter.callCount, 
+				0, 
+				'hybrid.start wrongly initialized LcovHtmlReporter for NODE env'
+			);
+
+			intern.mode = oldMode;
+			args.runId = oldArgsRunId;
+			args.logDir = oldArgsLogDir;
 			process.env.TRAVIS_JOB_NUMBER = oldTravisJobNumber;
 		},
 
@@ -341,6 +412,78 @@ define([
 
 			intern.mode = oldMode;
 			args.runId = oldArgsRunId;
+			process.env.TRAVIS_JOB_NUMBER = oldTravisJobNumber;
+		},
+
+		'start#instrumentUnloadedFiles': function() {
+
+			var oldMode,
+				oldArgsRunId,
+				oldArgsLogDir,
+				oldInternConfigInstrumentCode,
+				oldTravisJobNumber;
+
+			oldMode = intern.mode;
+			oldArgsRunId = args.runId;
+			oldArgsLogDir = args.logDir;
+			oldInternConfigInstrumentCode = intern.config.instrumentUnloadedFiles;
+			oldTravisJobNumber = process.env.TRAVIS_JOB_NUMBER;
+
+			intern.mode = "client";
+			args.runId = 1234;
+			args.logDir = undefined;
+			intern.config.instrumentUnloadedFiles = true;
+			delete process.env.TRAVIS_JOB_NUMBER;
+
+			hybrid.start();
+
+			// assert.equal(
+			// 	instrumentUnloadedFilesStub.callCount,
+			// 	1,
+			// 	'Failed to call instrumentUnloadedFiles during start'
+			// );
+			
+
+			intern.mode = oldMode;
+			args.runId = oldArgsRunId;
+			args.logDir = oldArgsLogDir;
+			intern.config.instrumentUnloadedFiles = oldInternConfigInstrumentCode;
+			process.env.TRAVIS_JOB_NUMBER = oldTravisJobNumber;
+		},
+
+		'start#doNotInstrumentUnloadedFiles': function() {
+
+			var oldMode,
+				oldArgsRunId,
+				oldArgsLogDir,
+				oldInternConfigInstrumentCode,
+				oldTravisJobNumber;
+
+			oldMode = intern.mode;
+			oldArgsRunId = args.runId;
+			oldArgsLogDir = args.logDir;
+			oldInternConfigInstrumentCode = intern.config.instrumentUnloadedFiles;
+			oldTravisJobNumber = process.env.TRAVIS_JOB_NUMBER;
+
+			intern.mode = "client";
+			args.runId = 1234;
+			args.logDir = undefined;
+			intern.config.instrumentUnloadedFiles = false;
+			delete process.env.TRAVIS_JOB_NUMBER;
+
+			hybrid.start();
+
+			// assert.equal(
+			// 	instrumentUnloadedFilesStub.callCount,
+			// 	0,
+			// 	'Failed to call instrumentUnloadedFiles during start'
+			// );
+			
+
+			intern.mode = oldMode;
+			args.runId = oldArgsRunId;
+			args.logDir = oldArgsLogDir;
+			intern.config.instrumentUnloadedFiles = oldInternConfigInstrumentCode;
 			process.env.TRAVIS_JOB_NUMBER = oldTravisJobNumber;
 		},
 
@@ -678,163 +821,271 @@ define([
 			);
 		},
 
-		// 'stop#withoutExistingCoverageFile': function() {
-		// 	var mockCoverageFile = "someCoverageFile";
+		'stop#withoutExistingCoverageFile': function() {
+			var mockCoverageFile = "someCoverageFile";
 
-		// 	var stopSandbox = sinon.sandbox.create();
-		// 	stopSandbox.stub(path, "resolve"); 
-		// 	stopSandbox.stub(fs, "existsSync");
+			var stopSandbox = sinon.sandbox.create();
+			stopSandbox.stub(path, "resolve"); 
+			stopSandbox.stub(fs, "existsSync");
 
-		// 	path.resolve.returns(mockCoverageFile);
-		// 	fs.existsSync.returns(false);
+			path.resolve.returns(mockCoverageFile);
+			fs.existsSync.returns(false);
 
-		// 	hybrid.start();
-		// 	hybrid.stop();		
+			hybrid.start();
+			hybrid.stop();		
 
-		// 	assert.deepEqual(
-		// 		mockJsonReporter.prototype.writeReport.lastCall.args[0], 
-		// 		new mockCollector(), 
-		// 		'hybrid.stop failed to call JsonReporter.writeReport correctly'
-		// 	);			
+			assert.deepEqual(
+				mockJsonReporter.prototype.writeReport.lastCall.args[0], 
+				new mockCollector(), 
+				'hybrid.stop failed to call JsonReporter.writeReport correctly'
+			);			
 
-		// 	assert.equal(
-		// 		mockJsonReporter.prototype.writeReport.lastCall.args[1], 
-		// 		true, 
-		// 		'hybrid.stop failed to call JsonReporter.writeReport correctly'
-		// 	);
+			assert.equal(
+				mockJsonReporter.prototype.writeReport.lastCall.args[1], 
+				true, 
+				'hybrid.stop failed to call JsonReporter.writeReport correctly'
+			);
 
-		// 	assert.deepEqual(
-		// 		mockCollector.prototype.add.callCount, 
-		// 		0, 
-		// 		'hybrid.stop wrongly called collector.add when coverage file does not exist'
-		// 	);
+			assert.deepEqual(
+				mockCollector.prototype.add.callCount, 
+				0, 
+				'hybrid.stop wrongly called collector.add when coverage file does not exist'
+			);
 
-		// 	assert.equal(
-		// 		mockLogger.prototype.dumpLogs.callCount, 
-		// 		1, 
-		// 		'hybrid.stop failed call Logger.dumpLogs'
-		// 	);
+			assert.equal(
+				mockLogger.prototype.dumpLogs.callCount, 
+				1, 
+				'hybrid.stop failed call Logger.dumpLogs'
+			);
 
-		// 	stopSandbox.restore();	
-		// },
+			stopSandbox.restore();	
+		},
 
-		// 'stop#withExitingCoverageFile': function() {
-		// 	var mockCoverageFile = "someCoverageFile",
-		// 		mockJSON = '{"a": 123}';
+		'stop#withExitingCoverageFile': function() {
+			var mockCoverageFile = "someCoverageFile",
+				mockJSON = '{"a": 123}';
 
-		// 	var stopSandbox = sinon.sandbox.create();
-		// 	stopSandbox.stub(path, "resolve"); 
-		// 	stopSandbox.stub(fs, "existsSync"); 
-		// 	stopSandbox.stub(fs, "readFileSync"); 
-		// 	stopSandbox.stub(fs, "unlinkSync"); 
+			var stopSandbox = sinon.sandbox.create();
+			stopSandbox.stub(path, "resolve"); 
+			stopSandbox.stub(fs, "existsSync"); 
+			stopSandbox.stub(fs, "readFileSync"); 
+			stopSandbox.stub(fs, "unlinkSync"); 
 
-		// 	path.resolve.returns(mockCoverageFile);
-		// 	fs.existsSync.returns(true);
-		// 	fs.readFileSync.returns(mockJSON);
+			path.resolve.returns(mockCoverageFile);
+			fs.existsSync.returns(true);
+			fs.readFileSync.returns(mockJSON);
 
-		// 	hybrid.start();
-		// 	hybrid.stop();		
+			hybrid.start();
+			hybrid.stop();		
 
-		// 	assert.deepEqual(
-		// 		mockJsonReporter.prototype.writeReport.lastCall.args[0], 
-		// 		new mockCollector(), 
-		// 		'hybrid.stop failed to call JsonReporter.writeReport correctly'
-		// 	);		
+			assert.deepEqual(
+				mockJsonReporter.prototype.writeReport.lastCall.args[0], 
+				new mockCollector(), 
+				'hybrid.stop failed to call JsonReporter.writeReport correctly'
+			);		
 
-		// 	assert.equal(
-		// 		mockJsonReporter.prototype.writeReport.lastCall.args[1], 
-		// 		true, 
-		// 		'hybrid.stop failed to call JsonReporter.writeReport correctly'
-		// 	);
+			assert.equal(
+				mockJsonReporter.prototype.writeReport.lastCall.args[1], 
+				true, 
+				'hybrid.stop failed to call JsonReporter.writeReport correctly'
+			);
 
-		// 	assert.deepEqual(
-		// 		mockCollector.prototype.add.lastCall.args[0], 
-		// 		JSON.parse(mockJSON), 
-		// 		'hybrid.stop failed to call collector.add correctly when coverage file exists'
-		// 	);
+			assert.deepEqual(
+				mockCollector.prototype.add.lastCall.args[0], 
+				JSON.parse(mockJSON), 
+				'hybrid.stop failed to call collector.add correctly when coverage file exists'
+			);
 
-		// 	assert.equal(
-		// 		fs.unlinkSync.lastCall.args[0], 
-		// 		mockCoverageFile, 
-		// 		'hybrid.stop failed to delete existing coverage files'
-		// 	);
+			assert.equal(
+				fs.unlinkSync.lastCall.args[0], 
+				mockCoverageFile, 
+				'hybrid.stop failed to delete existing coverage files'
+			);
 
-		// 	assert.equal(
-		// 		mockLogger.prototype.dumpLogs.callCount, 
-		// 		1, 
-		// 		'hybrid.stop failed call Logger.dumpLogs'
-		// 	);
+			assert.equal(
+				mockLogger.prototype.dumpLogs.callCount, 
+				1, 
+				'hybrid.stop failed call Logger.dumpLogs'
+			);
 
-		// 	stopSandbox.restore();	
-		// },
+			stopSandbox.restore();	
+		},
 
-		// 'stop#withMultipleReporters': function() {
-		// 	var oldMode;
-		// 	oldMode = intern.mode;
-		// 	intern.mode = "Runner";
+		'stop#withMultipleReporters': function() {
+			var oldMode;
+			oldMode = intern.mode;
+			intern.mode = "Runner";
 
-		// 	var mockCoverageFile = "someCoverageFile";
+			var mockCoverageFile = "someCoverageFile";
 
-		// 	var stopSandbox = sinon.sandbox.create();
-		// 	stopSandbox.stub(path, "resolve"); 
-		// 	stopSandbox.stub(fs, "existsSync");
+			var stopSandbox = sinon.sandbox.create();
+			stopSandbox.stub(path, "resolve"); 
+			stopSandbox.stub(fs, "existsSync");
 
-		// 	path.resolve.returns(mockCoverageFile);
-		// 	fs.existsSync.returns(false);
+			path.resolve.returns(mockCoverageFile);
+			fs.existsSync.returns(false);
 
-		// 	hybrid.start();
-		// 	hybrid.stop();		
+			hybrid.start();
+			hybrid.stop();		
 
-		// 	assert.deepEqual(
-		// 		mockTextReporter.prototype.writeReport.lastCall.args[0], 
-		// 		new mockCollector(), 
-		// 		'hybrid.stop failed to call TextReporter.writeReport correctly'
-		// 	);		
+			assert.deepEqual(
+				mockTextReporter.prototype.writeReport.lastCall.args[0], 
+				new mockCollector(), 
+				'hybrid.stop failed to call TextReporter.writeReport correctly'
+			);		
 
-		// 	assert.equal(
-		// 		mockTextReporter.prototype.writeReport.lastCall.args[1], 
-		// 		true, 
-		// 		'hybrid.stop failed to call TextReporter.writeReport correctly'
-		// 	);
+			assert.equal(
+				mockTextReporter.prototype.writeReport.lastCall.args[1], 
+				true, 
+				'hybrid.stop failed to call TextReporter.writeReport correctly'
+			);
 
-		// 	assert.deepEqual(
-		// 		mockLcovHtmlReporter.prototype.writeReport.lastCall.args[0], 
-		// 		new mockCollector(), 
-		// 		'hybrid.stop failed to call LcovHtmlReporter.writeReport correctly'
-		// 	);		
+			assert.deepEqual(
+				mockLcovHtmlReporter.prototype.writeReport.lastCall.args[0], 
+				new mockCollector(), 
+				'hybrid.stop failed to call LcovHtmlReporter.writeReport correctly'
+			);		
 
-		// 	assert.equal(
-		// 		mockLcovHtmlReporter.prototype.writeReport.lastCall.args[1], 
-		// 		true, 
-		// 		'hybrid.stop failed to call LcovHtmlReporter.writeReport correctly'
-		// 	);
+			assert.equal(
+				mockLcovHtmlReporter.prototype.writeReport.lastCall.args[1], 
+				true, 
+				'hybrid.stop failed to call LcovHtmlReporter.writeReport correctly'
+			);
 
-		// 	assert.deepEqual(
-		// 		mockLcovReporter.prototype.writeReport.lastCall.args[0], 
-		// 		new mockCollector(), 
-		// 		'hybrid.stop failed to call LcovReporter.writeReport correctly'
-		// 	);		
+			assert.deepEqual(
+				mockLcovReporter.prototype.writeReport.lastCall.args[0], 
+				new mockCollector(), 
+				'hybrid.stop failed to call LcovReporter.writeReport correctly'
+			);		
 
-		// 	assert.equal(
-		// 		mockLcovReporter.prototype.writeReport.lastCall.args[1], 
-		// 		true, 
-		// 		'hybrid.stop failed to call LcovReporter.writeReport correctly'
-		// 	);
+			assert.equal(
+				mockLcovReporter.prototype.writeReport.lastCall.args[1], 
+				true, 
+				'hybrid.stop failed to call LcovReporter.writeReport correctly'
+			);
 
-		// 	assert.deepEqual(
-		// 		mockJsonReporter.prototype.writeReport.lastCall.args[0], 
-		// 		new mockCollector(), 
-		// 		'hybrid.stop failed to call JsonReporter.writeReport correctly'
-		// 	);	
+			assert.deepEqual(
+				mockJsonReporter.prototype.writeReport.lastCall.args[0], 
+				new mockCollector(), 
+				'hybrid.stop failed to call JsonReporter.writeReport correctly'
+			);	
 
-		// 	assert.equal(
-		// 		mockJsonReporter.prototype.writeReport.lastCall.args[1], 
-		// 		true, 
-		// 		'hybrid.stop failed to call JsonReporter.writeReport correctly'
-		// 	);	
+			assert.equal(
+				mockJsonReporter.prototype.writeReport.lastCall.args[1], 
+				true, 
+				'hybrid.stop failed to call JsonReporter.writeReport correctly'
+			);	
 
-		// 	intern.mode = oldMode;
-		// 	stopSandbox.restore();	
-		// }
+			intern.mode = oldMode;
+			stopSandbox.restore();	
+		},
+
+		'instrumentUnloadedFiles#exludedFiles': function() {
+			var oldExcludeInstrumentation,
+				fileList;
+
+			fileList = ['exclude/file1', 'exclude/file2'];
+
+			glob.sync.returns(fileList);
+
+			oldExcludeInstrumentation = intern.config.excludeInstrumentation;
+
+			intern.config.excludeInstrumentation = /^(?:exclude)\//;
+
+			hybrid.instrumentUnloadedFiles();
+
+			for( var i = 0; i< fileList.length; i++) {
+				assert.isUndefined(
+					__internCoverage[fileList[i]],
+					'instrumented file in the excluded list'
+				);
+			}
+
+			intern.config.excludeInstrumentation = oldExcludeInstrumentation;
+		},
+
+		'instrumentUnloadedFiles#alreadyInstrumentedFiles': function() {
+			var oldExcludeInstrumentation,
+				instrumentUnloadedFilesSandbox,
+				fileList;
+
+			fileList = ['some/file1', 'some/file2'];
+
+			for( i = 0; i< fileList.length; i++) {
+				__internCoverage[fileList[i]] = 'some/resolved/file' + (i + 1);
+			}
+
+			glob.sync.returns(fileList);
+
+			oldExcludeInstrumentation = intern.config.excludeInstrumentation;
+
+			intern.config.excludeInstrumentation = /^(?:exclude)\//;
+
+			instrumentUnloadedFilesSandbox = sinon.sandbox.create();
+			instrumentUnloadedFilesSandbox.stub(path, "resolve");
+
+			for( var i = 0; i< fileList.length; i++) {
+				path.resolve.onCall(i).returns(fileList[i]);
+			}
+
+			hybrid.instrumentUnloadedFiles();
+			instrumentUnloadedFilesSandbox.restore();
+
+			for( i = 0; i< fileList.length; i++) {
+				assert.equal(
+					__internCoverage[fileList[i]],
+					'some/resolved/file' + (i + 1)
+				);
+			}
+
+			intern.config.excludeInstrumentation = oldExcludeInstrumentation;
+
+			for( i = 0; i< fileList.length; i++) {
+				delete __internCoverage[fileList[i]];
+			}
+		},
+
+		'instrumentUnloadedFiles': function() {
+			var oldExcludeInstrumentation,
+				instrumentUnloadedFilesSandbox,
+				fileList;
+
+			var mockIns = new Instrumenter();
+
+			fileList = ['some/file1', 'some/file2', 'exclude/some/file3'];
+
+			glob.sync.returns(fileList);
+
+			oldExcludeInstrumentation = intern.config.excludeInstrumentation;
+
+			intern.config.excludeInstrumentation = /^(?:exclude)\//;
+
+			instrumentUnloadedFilesSandbox = sinon.sandbox.create();
+			instrumentUnloadedFilesSandbox.stub(path, "resolve");
+			instrumentUnloadedFilesSandbox.stub(fs, "readFileSync");
+
+			for( var i = 0; i< fileList.length; i++) {
+				path.resolve.onCall(i).returns(fileList[i]);
+			}
+
+			fs.readFileSync.returns('mockStr');
+
+			hybrid.instrumentUnloadedFiles();
+			instrumentUnloadedFilesSandbox.restore();
+
+			for( i = 0; i< fileList.length-1; i++) {
+				mockIns.instrumentSync('mockStr', fileList[i]);
+				assert.deepEqual(
+					__internCoverage[fileList[i]],
+					mockIns.lastFileCoverage()
+				);
+			}
+
+			intern.config.excludeInstrumentation = oldExcludeInstrumentation;
+
+			for( i = 0; i< fileList.length-1; i++) {
+				delete __internCoverage[fileList[i]];
+			}
+		}
 	});
 });

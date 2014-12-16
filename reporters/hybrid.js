@@ -38,6 +38,11 @@
 				logDir =  path.resolve('.', 'logs', 'build_' + process.env.TRAVIS_JOB_NUMBER);
 				tmpDir = FileWriter.createTempDir(process.env.TRAVIS_JOB_NUMBER);
 
+			// Else if logDir specified in command line, then use that dir
+			} else if (args.logDir) {
+				logDir =  path.resolve(args.logDir);
+				tmpDir = FileWriter.createTempDir(args.logDir);
+
 			// Else create log dir from command line arg 'runId'
 			} else {
 				logDir =  path.resolve('.', 'logs', args.runId.toString());
@@ -178,15 +183,14 @@
 				if(!intern.config.excludeInstrumentation.test(fileNames[i])) {
 					fileNames[i] = path.resolve(fileNames[i]);
 
-					//console.log(coverageObj);
 					if(!__internCoverage[fileNames[i]]) {
 						fileSrc = fs.readFileSync(fileNames[i], "utf8");
 						instrumenter.instrumentSync(fileSrc.toString(), fileNames[i]);
 						coverage = instrumenter.lastFileCoverage();
 
-						if (coverage && !__internCoverage[fileNames[i]]) {
+						// if (coverage) {
 							__internCoverage[fileNames[i]] = coverage;
-						}
+						// }
 					}
 				}
 			}
