@@ -162,6 +162,7 @@ define([
 			//Mocking FileWriter module
 			sandbox.stub(FileWriter);
 			sandbox.stub(BrowserArtifacts);
+			sandbox.stub(fs);
 			sandbox.stub(glob, "sync");
 			glob.sync.returns([]);
 
@@ -203,15 +204,24 @@ define([
 			mockLcovReporter = sinon.stub();
 			mockLcovReporter.prototype = sinon.createStubInstance(LcovReporter);
 
-			mockery.enable();
+			mockery.enable({
+				useCleanCache: true
+			});
 			mockery.registerMock(path.resolve('reporters/lib/Logger.js'), mockLogger);
+			mockery.registerMock(path.resolve('reporters/lib/FileWriter.js'), FileWriter);
+			mockery.registerMock(path.resolve('reporters/lib/BrowserArtifacts.js'), BrowserArtifacts);
 			mockery.registerMock('istanbul/lib/collector', mockCollector);
 			mockery.registerMock('istanbul/lib/report/json', mockJsonReporter);
 			mockery.registerMock('istanbul/lib/report/html', mockLcovHtmlReporter);
 			mockery.registerMock('istanbul/lib/report/text', mockTextReporter);
 			mockery.registerMock('istanbul/lib/report/lcovonly', mockLcovReporter);
+			mockery.registerMock('fs', fs);
+			mockery.registerMock('path', path);
+			mockery.registerMock('glob', glob);
 
             require.undef('reporters/hybrid');
+            require.undef('dojo/node');
+            require.undef('istanbul/lib/report/json');
 			require([ 'reporters/hybrid' ], function (hybridUsingMock) {
 				hybrid = hybridUsingMock;
 				dfd.resolve();
@@ -826,7 +836,7 @@ define([
 
 			var stopSandbox = sinon.sandbox.create();
 			stopSandbox.stub(path, "resolve"); 
-			stopSandbox.stub(fs, "existsSync");
+			// stopSandbox.stub(fs, "existsSync");
 
 			path.resolve.returns(mockCoverageFile);
 			fs.existsSync.returns(false);
