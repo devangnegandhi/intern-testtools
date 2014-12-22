@@ -16,6 +16,7 @@ if(typeof process !== "undefined") {
 	// If Sauce Labs credentials are provided, use SauceLabsTunnel
 	if (process.env.SAUCE_USERNAME && process.env.SAUCE_ACCESS_KEY) {
 		tunnelType = 'SauceLabsTunnel';
+		port = freeport();
 	}
 }
 
@@ -54,7 +55,7 @@ define({
 	tunnelOptions: {
 //		username: null,
 //		accessKey: null,
-		hostname: 'localhost',
+		// hostname: 'localhost',
 		port: port
 	},
 

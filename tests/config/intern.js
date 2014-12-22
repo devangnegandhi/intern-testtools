@@ -6,12 +6,31 @@ define([
 	'intern/chai!assert'
 ], function (registerSuite, assert) {
 
-	var oldConsoleError;
+	var oldConsoleError,
+		originalSeleniumLauncherEnvVar,
+		originalSaucelabsUsernameEnvVar,
+		originalSaucelabsAccessKeyEnvVar;
+
 
 	registerSuite({
 		name: 'config/intern',
 
 		setup: function () {
+		},
+
+		beforeEach: function () {
+			originalSeleniumLauncherEnvVar = process.env.SELENIUM_LAUNCHER_PORT;
+			originalSaucelabsUsernameEnvVar = process.env.SAUCE_USERNAME;
+			originalSaucelabsAccessKeyEnvVar = process.env.SAUCE_ACCESS_KEY;
+			delete process.env.SELENIUM_LAUNCHER_PORT;
+			delete process.env.SAUCE_USERNAME;
+			delete process.env.SAUCE_ACCESS_KEY;
+		},
+
+		afterEach: function() {
+			process.env.SELENIUM_LAUNCHER_PORT = originalSeleniumLauncherEnvVar;
+			process.env.SAUCE_USERNAME = originalSaucelabsUsernameEnvVar;
+			process.env.SAUCE_ACCESS_KEY = originalSaucelabsAccessKeyEnvVar;
 		},
 
 		teardown: function () {
