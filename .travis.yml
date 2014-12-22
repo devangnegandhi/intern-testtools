@@ -1,6 +1,7 @@
 language: node_js
+env:
+  - SAUCE_USERNAME=devangnegandhi SAUCE_ACCESS_KEY=4ccaa2c0-e724-49eb-95d8-a529c3dfe5a6
 node_js:
-  - "0.11"
   - "0.10"
 after_script:
   - npm run coveralls
