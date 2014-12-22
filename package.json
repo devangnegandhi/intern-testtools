@@ -19,6 +19,8 @@
   "homepage": "https://github.com/devangnegandhi/intern-testtools",
   "devDependencies": {
     "coveralls": "^2.11.1",
+    "deasync": "0.0.7",
+    "freeport": "^1.0.3",
     "glob": "^4.0.5",
     "intern": "2.2.2",
     "lcov-result-merger": "^1.0.0",

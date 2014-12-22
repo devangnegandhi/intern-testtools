@@ -1,9 +1,14 @@
+var deasync = require.nodeRequire('deasync');
+var freeport = deasync(require.nodeRequire('freeport'));
+var proxyPort = freeport();
+var hostname = "localhost";
+
 define({
 	// The port on which the instrumenting proxy will listen
-	proxyPort: 9000,
+	proxyPort: proxyPort,
 
 	// A fully qualified URL to the Intern proxy
-	proxyUrl: 'http://localhost:9000/',
+	proxyUrl: 'http://' + hostname + ':' + proxyPort + '/',
 
 	// Default desired capabilities for all environments. Individual capabilities can be overridden by any of the
 	// specified browser environments in the `environments` array below as well. See
@@ -15,16 +20,6 @@ define({
 		'selenium-version': '2.43.1',
 		'idle-timeout': 30
 	},
-
-	// Browsers to run integration testing against. Note that version numbers must be strings if used with Sauce
-	// OnDemand. Options that will be permutated are browserName, version, platform, and platformVersion; any other
-	// capabilities options specified for an environment will be copied as-is
-	environments: [
-		{ browserName: 'phantomjs' }
-	],
-
-	// Maximum number of simultaneous integration tests that should be executed on the remote WebDriver service
-	maxConcurrency: 3,
 
 	// Name of the tunnel class to use for WebDriver tests
 	tunnel: 'NullTunnel',

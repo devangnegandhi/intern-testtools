@@ -9,7 +9,9 @@ start-selenium -port 4567 &> /dev/null &
 my_child_PID=$!
 rand=$RANDOM
 intern-client config=tests/intern-selftest-client runId=$rand logDir=./logs
+export SELENIUM_LAUNCHER_PORT=4567
 intern-runner config=tests/intern-selftest-runner runId=$rand logDir=./logs
 
-# node --debug-brk ./node_modules/.bin/intern-client config=tests/intern-selftest-client runId=$rand 
+# node --debug-brk ./node_modules/.bin/intern-client config=tests/intern-selftest-client runId=$rand
+# export SELENIUM_LAUNCHER_PORT=4567 
 # node --debug-brk ./node_modules/.bin/intern-runner config=tests/intern-selftest-runner runId=$rand
