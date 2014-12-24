@@ -57,6 +57,7 @@ define({
 	// Non-functional test suite(s) to run in each browser
 	suites: [
 		'tests/config/intern',
+		'tests/config/lib/Browsers',
 		'tests/reporters/lib/FileWriter',
 		'tests/reporters/lib/BrowserArtifacts',
 		'tests/reporters/lib/Logger',

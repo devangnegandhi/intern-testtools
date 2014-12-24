@@ -1,14 +1,20 @@
-var tunnelType = 'NullTunnel';
-var port = null;
+
+var path = require.nodeRequire('path');
 var deasync = require.nodeRequire('deasync');
 var freeport = deasync(require.nodeRequire('freeport'));
+var Browsers = require.nodeRequire(path.resolve('config/lib/Browsers'));
+
+var tunnelType = 'NullTunnel';
+var port = null;
 var proxyPort = freeport();
 var hostname = 'localhost';
+var environments = [];
 
 if(typeof process !== "undefined") {
 
 	if (process.env.SELENIUM_LAUNCHER_PORT) {
 		port = process.env.SELENIUM_LAUNCHER_PORT;
+		environments = Browsers.getLocalMachineConfig();
 	} else {
 		console.warn('Selenium port not found. Please launch selenium before using intern');
 	}
@@ -17,6 +23,7 @@ if(typeof process !== "undefined") {
 	if (process.env.SAUCE_USERNAME && process.env.SAUCE_ACCESS_KEY) {
 		tunnelType = 'SauceLabsTunnel';
 		port = freeport();
+		environments = Browsers.getSauceLabsConfig();
 	}
 }
 
@@ -34,20 +41,16 @@ define({
 	// Note that the `build` capability will be filled in with the current commit ID from the Travis CI environment
 	// automatically
 	capabilities: {
-		'selenium-version': '2.43.1',
 		'idle-timeout': 30
 	},
 
 	// Browsers to run integration testing against. Note that version numbers must be strings if used with Sauce
 	// OnDemand. Options that will be permutated are browserName, version, platform, and platformVersion; any other
 	// capabilities options specified for an environment will be copied as-is
-	environments: [
-//		{ browserName: 'phantomjs' },
-		{ browserName: 'chrome' }
-	],
+	environments: environments,
 
 	// Maximum number of simultaneous integration tests that should be executed on the remote WebDriver service
-	maxConcurrency: 3,
+	maxConcurrency: 4,
 
 	// Name of the tunnel class to use for WebDriver tests
 	tunnel: tunnelType,
