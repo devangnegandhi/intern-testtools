@@ -1,16 +1,5 @@
 var os = require('os');
-
-/**
- * Enum containing all the supported OS Platforms
- * The platform strings are saucelabs compatible
- * @type {Object}
- */
-var PLATFORM = {
-	LINUX: 'linux',
-	WIN: 'windows',
-	MAC: 'osx',
-	UNSUPPORTED: 'unsupported'
-};
+var Platform = require('./Platform');
 
 /**
  * Enum containing all the browsers we like to support 
@@ -25,27 +14,54 @@ var BROWSER = {
 	IE: 'internet explorer'	
 };
 
-/**
- * A map containing the versions of browsers we like to support
- * An empty array means the latest version only
- * @type {Object}
- */
-var BroswerVersionMap = {};
-BroswerVersionMap[BROWSER.CHROME] = [];
-BroswerVersionMap[BROWSER.SAFARI] = [7, 8];
-BroswerVersionMap[BROWSER.OPERA] = [12]
-BroswerVersionMap[BROWSER.FF] = [];
-BroswerVersionMap[BROWSER.IE] = [10, 11];
+// Browsers to run integration testing against. Note that version numbers must be strings if used with Sauce
+// OnDemand. Options that will be permutated are browserName, version, platform, and platformVersion; any other
+// capabilities options specified for an environment will be copied as-is
+var saucelabsConfig = [
+	{
+		browserName: BROWSER.CHROME,
+		platform: [
+			Platform.LINUX
+		]
+	},
+	{
+		browserName: BROWSER.FF,
+		platform: [
+			Platform.LINUX
+		]
+	},
+	{
+		browserName: BROWSER.IE,
+		version: '10',
+		platform: [
+			Platform.WINDOWS['7']
+		]
+	},
+	{
+		browserName: BROWSER.IE,
+		version: '11',
+		platform: [
+			Platform.WINDOWS['7']
+		]
+	},
+	{
+		browserName: BROWSER.SAFARI,
+		version: '7',
+		platform: [
+			Platform.OSX['10.9']
+		]
+	}
+];
 
 /**
  * A map containig the browsers we like to support on different platforms
  * @type {Object}
  */
 var PlatformBroswerMap = {};
-PlatformBroswerMap[PLATFORM.LINUX] = [BROWSER.CHROME, BROWSER.FF/*, BROWSER.OPERA*/];
-PlatformBroswerMap[PLATFORM.WIN] = [BROWSER.CHROME, BROWSER.FF, BROWSER.IE/*, BROWSER.OPERA*/];
-PlatformBroswerMap[PLATFORM.MAC] = [BROWSER.CHROME, BROWSER.FF, BROWSER.SAFARI];
-PlatformBroswerMap[PLATFORM.UNSUPPORTED] = [];
+PlatformBroswerMap[Platform.PLATFORM.UNIX] = [BROWSER.CHROME, BROWSER.FF/*, BROWSER.OPERA*/];
+PlatformBroswerMap[Platform.PLATFORM.WIN] = [BROWSER.CHROME, BROWSER.FF, BROWSER.IE/*, BROWSER.OPERA*/];
+PlatformBroswerMap[Platform.PLATFORM.OSX] = [BROWSER.CHROME, BROWSER.FF, BROWSER.SAFARI];
+PlatformBroswerMap[Platform.PLATFORM.UNSUPPORTED] = [];
 
 /**
  * Method to check if the current platform is a Windows
@@ -77,16 +93,16 @@ function isUnix() {
  */
 function getOS() {
 	if(isWin()) {
-		return PLATFORM.WIN;
+		return Platform.PLATFORM.WIN;
 
 	} else if(isMac()) {
-		return PLATFORM.MAC;
+		return Platform.PLATFORM.OSX;
 
 	} else if(isUnix()) {
-		return PLATFORM.LINUX;
+		return Platform.PLATFORM.UNIX;
 
 	} else {
-		return PLATFORM.UNSUPPORTED;
+		return Platform.PLATFORM.UNSUPPORTED;
 	}
 }
 
@@ -105,36 +121,7 @@ var Browsers = {
 	},
 
 	getSauceLabsConfig: function() {
-		var config = [];
-		var browsers = {};
-		var platformName;
-
-		for (var platform in PLATFORM) {
-		    if (platform !== 'UNSUPPORTED' && PLATFORM.hasOwnProperty(platform)) {
-		    	platformName = PLATFORM[platform];
-		        PlatformBroswerMap[platformName].forEach(function (browserName) {
-
-		        	if (!browsers[browserName]) {
-		        		browsers[browserName] = {};
-		        		browsers[browserName].browserName = browserName;
-		        		browsers[browserName].version = [];
-		        		browsers[browserName].platform = [];
-
-			        	BroswerVersionMap[browserName].forEach(function (browserVersion) {
-			        		browsers[browserName].version.push(browserVersion);
-			        	});
-		        	}
-
-	        		browsers[browserName].platform.push(platformName);
-		        })
-		    }
-		}
-
-		for (var browser in browsers) {
-			config.push(browsers[browser]);
-		}
-
-		return config;
+		return saucelabsConfig;
 	}
 }
 

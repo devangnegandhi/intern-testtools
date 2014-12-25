@@ -9,6 +9,8 @@ start-selenium -port 4567 &> /dev/null &
 my_child_PID=$!
 rand=$RANDOM
 export SELENIUM_LAUNCHER_PORT=4567
+# export SAUCE_USERNAME=devangnegandhi 
+# export SAUCE_ACCESS_KEY=4ccaa2c0-e724-49eb-95d8-a529c3dfe5a6
 intern-client config=tests/intern-selftest-client runId=$rand logDir=./logs
 intern-runner config=tests/intern-selftest-runner runId=$rand logDir=./logs
 

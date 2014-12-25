@@ -6,8 +6,9 @@ define([
 	'intern/chai!assert',
 	'dojo/node!os',
 	'dojo/node!sinon',
-	'dojo/node!../../../config/lib/Browsers'
-], function (registerSuite, assert, os, sinon, Browsers) {
+	'dojo/node!../../../config/lib/Browsers',
+	'dojo/node!../../../config/lib/Platform'
+], function (registerSuite, assert, os, sinon, Browsers, Platform) {
 	var BROWSER = {
 		CHROME: 'chrome',
 		SAFARI: 'safari',
@@ -15,6 +16,42 @@ define([
 		FF: 'firefox',
 		IE: 'internet explorer'	
 	};
+
+	var saucelabsConfig = [
+		{
+			browserName: BROWSER.CHROME,
+			platform: [
+				Platform.LINUX
+			]
+		},
+		{
+			browserName: BROWSER.FF,
+			platform: [
+				Platform.LINUX
+			]
+		},
+		{
+			browserName: BROWSER.IE,
+			version: '10',
+			platform: [
+				Platform.WINDOWS['7']
+			]
+		},
+		{
+			browserName: BROWSER.IE,
+			version: '11',
+			platform: [
+				Platform.WINDOWS['7']
+			]
+		},
+		{
+			browserName: BROWSER.SAFARI,
+			version: '7',
+			platform: [
+				Platform.OSX['10.9']
+			]
+		}
+	];
 
 	registerSuite({
 		name: 'config/intern/Browsers',
@@ -111,16 +148,10 @@ define([
 		},
 
 		'getSauceLabsConfig': function () {
-			var expectedSaucelabsConfig = [ 
-				{ browserName: BROWSER.CHROME, version: [], platform: [ 'linux', 'windows', 'osx' ] },
-	  			{ browserName: BROWSER.FF,version: [], platform: [ 'linux', 'windows', 'osx' ] },
-				{ browserName: BROWSER.IE, version: [ 10, 11 ], platform: [ 'windows' ] },
-				{ browserName: BROWSER.SAFARI, version: [ 7, 8 ], platform: [ 'osx' ] } 
-			];
-
+			
 			var config = Browsers.getSauceLabsConfig();
 
-			assert.deepEqual(config, expectedSaucelabsConfig,
+			assert.deepEqual(config, saucelabsConfig,
 				'Browsers returned wrong config for saucelabs'
 			);
 		}

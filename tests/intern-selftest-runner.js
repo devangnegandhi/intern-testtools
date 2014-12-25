@@ -10,6 +10,16 @@ var proxyPort = freeport();
 var hostname = 'localhost';
 var environments = [];
 
+// Default desired capabilities for all environments. Individual capabilities can be overridden by any of the
+// specified browser environments in the `environments` array below as well. See
+// https://code.google.com/p/selenium/wiki/DesiredCapabilities for standard Selenium capabilities and
+// https://saucelabs.com/docs/additional-config#desired-capabilities for Sauce Labs capabilities.
+// Note that the `build` capability will be filled in with the current commit ID from the Travis CI environment
+// automatically
+var capabilities = {
+	'idle-timeout': 30
+}
+
 if(typeof process !== "undefined") {
 
 	if (process.env.SELENIUM_LAUNCHER_PORT) {
@@ -24,6 +34,13 @@ if(typeof process !== "undefined") {
 		tunnelType = 'SauceLabsTunnel';
 		port = freeport();
 		environments = Browsers.getSauceLabsConfig();
+
+	// Else use local copies of the browsers
+	} else {
+		capabilities['firefox_binary'] = '/opt/firefox33/firefox';
+		capabilities['chromeOptions'] = {
+			binary: '/home/devang/Downloads/google-chrome-stable_37.0.2062.94-1_amd64/opt/google/chrome/google-chrome'
+		};
 	}
 }
 
@@ -34,23 +51,12 @@ define({
 	// A fully qualified URL to the Intern proxy
 	proxyUrl: 'http://' + hostname + ':' + proxyPort + '/',
 
-	// Default desired capabilities for all environments. Individual capabilities can be overridden by any of the
-	// specified browser environments in the `environments` array below as well. See
-	// https://code.google.com/p/selenium/wiki/DesiredCapabilities for standard Selenium capabilities and
-	// https://saucelabs.com/docs/additional-config#desired-capabilities for Sauce Labs capabilities.
-	// Note that the `build` capability will be filled in with the current commit ID from the Travis CI environment
-	// automatically
-	capabilities: {
-		'idle-timeout': 30
-	},
+	capabilities: capabilities,
 
-	// Browsers to run integration testing against. Note that version numbers must be strings if used with Sauce
-	// OnDemand. Options that will be permutated are browserName, version, platform, and platformVersion; any other
-	// capabilities options specified for an environment will be copied as-is
 	environments: environments,
 
 	// Maximum number of simultaneous integration tests that should be executed on the remote WebDriver service
-	maxConcurrency: 4,
+	maxConcurrency: 3,
 
 	// Name of the tunnel class to use for WebDriver tests
 	tunnel: tunnelType,
