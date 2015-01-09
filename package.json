@@ -4,6 +4,7 @@
   "description": "Customized intern.io configurtions, reporters and objects for reuse across projects",
   "main": "",
   "scripts": {
+    "install": "node install.js",
     "test": "bash ./tests/run_test.sh",
     "coveralls": "cat lcov.info | node_modules/.bin/coveralls"
   },
@@ -26,10 +27,13 @@
     "lcov-result-merger": "^1.0.0",
     "mkdirp": "^0.5.0",
     "mockery": "^1.4.0",
+    "mozilla-download": "^0.4.6",
     "phantomjs": "^1.9.7-15",
+    "request": "^2.51.0",
     "requirejs": "^2.1.15",
     "selenium-standalone": "^2.43.1-2.9.0",
-    "sinon": "^1.10.3"
+    "sinon": "^1.10.3",
+    "touch": "0.0.3"
   },
   "dependencies": {
     "chalk": "^0.5.1",
