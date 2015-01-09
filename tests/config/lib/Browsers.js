@@ -1,6 +1,7 @@
 /**
  * @copyright Copyright (C) 2014 Devang Negandhi - All Rights Reserved
  */
+
 define([
 	'intern!object',
 	'intern/chai!assert',
@@ -20,12 +21,14 @@ define([
 	var saucelabsConfig = [
 		{
 			browserName: BROWSER.CHROME,
+			version: Browsers.getBrowserVersion(BROWSER.CHROME),
 			platform: [
 				Platform.LINUX
 			]
 		},
 		{
 			browserName: BROWSER.FF,
+			version: Browsers.getBrowserVersion(BROWSER.FF),
 			platform: [
 				Platform.LINUX
 			]
@@ -54,7 +57,7 @@ define([
 	];
 
 	registerSuite({
-		name: 'config/intern/Browsers',
+		name: 'config/lib/Browsers',
 
 		setup: function () {
 		},
@@ -72,8 +75,14 @@ define([
 			var config;
 			var sandbox = sinon.sandbox.create();
 			var expectedLinuxConfig = [ 
-				{ browserName: BROWSER.CHROME },
-				{ browserName: BROWSER.FF } 
+				{ 
+					browserName: BROWSER.CHROME,
+					version: Browsers.getBrowserVersion(BROWSER.CHROME)
+				},
+				{ 
+					browserName: BROWSER.FF,
+					version: Browsers.getBrowserVersion(BROWSER.FF)
+				} 
 			];
 
 			sandbox.stub(os, "platform"); 
@@ -92,9 +101,18 @@ define([
 			var config;
 			var sandbox = sinon.sandbox.create();
 			var expectedWinConfig = [ 
-				{ browserName: BROWSER.CHROME },
-				{ browserName: BROWSER.FF },
-				{ browserName: BROWSER.IE }
+				{ 
+					browserName: BROWSER.CHROME,
+					version: Browsers.getBrowserVersion(BROWSER.CHROME)
+				},
+				{ 
+					browserName: BROWSER.FF,
+					version: Browsers.getBrowserVersion(BROWSER.FF)
+				},
+				{ 
+					browserName: BROWSER.IE,
+					version: undefined
+				}
 			];
 
 			sandbox.stub(os, "platform"); 
@@ -112,10 +130,19 @@ define([
 		'getLocalMachineConfig#osx': function () {
 			var config;
 			var sandbox = sinon.sandbox.create();
-			var expectedOSXConfig = [ 
-				{ browserName: BROWSER.CHROME },
-				{ browserName: BROWSER.FF },
-				{ browserName: BROWSER.SAFARI }
+			var expectedOSXConfig = [
+				{ 
+					browserName: BROWSER.CHROME,
+					version: Browsers.getBrowserVersion(BROWSER.CHROME)
+				},
+				{ 
+					browserName: BROWSER.FF,
+					version: Browsers.getBrowserVersion(BROWSER.FF)
+				},
+				{ 
+					browserName: BROWSER.SAFARI,
+					version: undefined
+				}
 			];
 
 			sandbox.stub(os, "platform"); 
