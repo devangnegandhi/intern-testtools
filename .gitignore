@@ -2,5 +2,6 @@ html-report/
 node_modules/
 *lcov.info
 coverage-final.json
+selenium.log
 logs/
 *.*~
