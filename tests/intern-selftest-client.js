@@ -58,6 +58,7 @@ define({
 	suites: [
 		'tests/config/intern',
 		'tests/config/lib/Browsers',
+		'tests/config/lib/Selenium',
 		'tests/reporters/lib/FileWriter',
 		'tests/reporters/lib/BrowserArtifacts',
 		'tests/reporters/lib/Logger',

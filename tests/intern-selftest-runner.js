@@ -3,12 +3,16 @@ var path = require.nodeRequire('path');
 var deasync = require.nodeRequire('deasync');
 var freeport = deasync(require.nodeRequire('freeport'));
 var Browsers = require.nodeRequire(path.resolve('config/lib/Browsers'));
+var Selenium = require.nodeRequire(path.resolve('config/lib/Selenium'));
+var Firefox = require.nodeRequire(path.resolve('config/lib/Browsers_Firefox'));
 
 var tunnelType = 'NullTunnel';
 var port = null;
 var proxyPort = freeport();
 var hostname = 'localhost';
-var environments = [];
+var environments = undefined;
+
+Selenium = new Selenium();
 
 // Default desired capabilities for all environments. Individual capabilities can be overridden by any of the
 // specified browser environments in the `environments` array below as well. See
@@ -22,25 +26,33 @@ var capabilities = {
 
 if(typeof process !== "undefined") {
 
-	if (process.env.SELENIUM_LAUNCHER_PORT) {
-		port = process.env.SELENIUM_LAUNCHER_PORT;
-		environments = Browsers.getLocalMachineConfig();
-	} else {
-		console.warn('Selenium port not found. Please launch selenium before using intern');
-	}
-
 	// If Sauce Labs credentials are provided, use SauceLabsTunnel
 	if (process.env.SAUCE_USERNAME && process.env.SAUCE_ACCESS_KEY) {
 		tunnelType = 'SauceLabsTunnel';
 		port = freeport();
 		environments = Browsers.getSauceLabsConfig();
 
-	// Else use local copies of the browsers
+	// Else use local selenium and browsers
 	} else {
-		capabilities['firefox_binary'] = '/opt/firefox33/firefox';
-		capabilities['chromeOptions'] = {
-			binary: '/home/devang/Downloads/google-chrome-stable_37.0.2062.94-1_amd64/opt/google/chrome/google-chrome'
-		};
+
+		// If selenium was already available, use that
+		if (process.env.SELENIUM_LAUNCHER_PORT) {
+			port = process.env.SELENIUM_LAUNCHER_PORT;
+			console.log('Using external Selenium on port ' + port);
+
+		// Else launch a new instance of selenium
+		} else {
+			port = freeport();
+			console.log('Launching Selenium on port ' + port);
+			Selenium.start(port);		
+		}
+
+		// Get the enviornments for running on local machine
+		environments = Browsers.getLocalMachineConfig();
+
+		// Download FF browser
+		var downloadDirFF = Firefox.download();
+		capabilities['firefox_binary'] = path.resolve(downloadDirFF, 'firefox');
 	}
 }
 
