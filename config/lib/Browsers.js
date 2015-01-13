@@ -19,7 +19,7 @@ var BROWSER = {
 
 var VERSION = {};
 VERSION[BROWSER.CHROME] = '39';
-VERSION[BROWSER.FF] = '33.1.1';
+VERSION[BROWSER.FF] = '33.0.3';
 
 // Browsers to run integration testing against. Note that version numbers must be strings if used with Sauce
 // OnDemand. Options that will be permutated are browserName, version, platform, and platformVersion; any other
@@ -27,14 +27,14 @@ VERSION[BROWSER.FF] = '33.1.1';
 var saucelabsConfig = [
 	{
 		browserName: BROWSER.CHROME,
-		version: VERSION[BROWSER.CHROME],
+		version: VERSION[BROWSER.CHROME].split('.')[0],
 		platform: [
 			Platform.LINUX
 		]
 	},
 	{
 		browserName: BROWSER.FF,
-		version: VERSION[BROWSER.FF],
+		version: VERSION[BROWSER.FF].split('.')[0],
 		platform: [
 			Platform.LINUX
 		]

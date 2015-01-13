@@ -21,14 +21,14 @@ define([
 	var saucelabsConfig = [
 		{
 			browserName: BROWSER.CHROME,
-			version: Browsers.getBrowserVersion(BROWSER.CHROME),
+			version: Browsers.getBrowserVersion(BROWSER.CHROME).split('.')[0],
 			platform: [
 				Platform.LINUX
 			]
 		},
 		{
 			browserName: BROWSER.FF,
-			version: Browsers.getBrowserVersion(BROWSER.FF),
+			version: Browsers.getBrowserVersion(BROWSER.FF).split('.')[0],
 			platform: [
 				Platform.LINUX
 			]
