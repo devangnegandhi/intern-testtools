@@ -59,6 +59,7 @@ define({
 		'tests/config/intern',
 		'tests/config/lib/Browsers',
 		'tests/config/lib/Selenium',
+		'tests/config/lib/Browsers_Firefox',
 		'tests/reporters/lib/FileWriter',
 		'tests/reporters/lib/BrowserArtifacts',
 		'tests/reporters/lib/Logger',

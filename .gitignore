@@ -5,3 +5,4 @@ coverage-final.json
 selenium.log
 logs/
 *.*~
+browsers/
